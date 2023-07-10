@@ -168,7 +168,7 @@ $(function() {
                     hoverRadius: 1,
                     pointBackgroundColor: function(context) {
 
-                        var year = context.raw.data.year_fabrication;
+                        var year = context.raw.data.year;
 
                         var color = getYearColor(year);
 

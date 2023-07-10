@@ -93,8 +93,8 @@ const externalTooltipHandler = (context) => {
 
 			var $text = $('<div class="d-flex flex-column"></div>');
 
-			$text.append(`<small class="opacity-50">${car.version}</small>`);
-			$text.append(`<p class="m-0">${car.year_fabrication}, <b>${parseFloat(car.price).toLocaleString('pt-br', {style: 'currency', currency: 'BRL'})}</b></p>`);
+			$text.append(`<small class="opacity-50">${car.version ?? '-'}</small>`);
+			$text.append(`<p class="m-0">${car.year}, <b>${parseFloat(car.price).toLocaleString('pt-br', {style: 'currency', currency: 'BRL'})}</b></p>`);
 			$text.append(`<small>${car.odometer} Km</small>`)
 
 			$item.append($text);

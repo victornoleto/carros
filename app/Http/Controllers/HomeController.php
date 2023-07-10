@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Car;
+use App\Models\OlxCar;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -19,36 +20,36 @@ class HomeController extends Controller
 
     public function cars(Request $request): JsonResponse
     {
-        $data = Car::search($request);
+        $data = OlxCar::search($request);
 
         return response()->json($data);
     }
 
-    public function redirect(Request $request): RedirectResponse {
+    public function redirect(Request $request): View {
 
         $request->validate([
             'brand' => ['required', 'string'],
             'model' => ['required', 'string'],
             'price' => ['required', 'numeric'],
-            'year_fabrication' => ['required', 'numeric'],
+            'year' => ['required', 'numeric'],
             'odometer' => ['required', 'numeric'],
         ]);
 
-        $url = "https://www.webmotors.com.br/carros/estoque/".$request->brand."/".$request->model."?";
-            
-        $query = [
-            "anoate" => $request->year_fabrication,
-            "anode" => $request->year_fabrication,
-            "kmde" => max($request->odometer - 10000, 0),
-            "kmate" => $request->odometer,
-            "precode" => max($request->price - 10000, 0),
-            "precoate" => $request->price
-        ];
+        $cars = OlxCar::query()
+            ->where('active', true)
+            ->where([
+                ['brand', '=', $request->brand],
+                ['model', '=', $request->model],
+                ['year', '=', $request->year],
+            ])
+            ->where('price', '<=', $request->price)
+            ->where('price', '>=', $request->price - 10000)
+            ->where('odometer', '<=', $request->odometer)
+            ->where('odometer', '>=', $request->odometer - 10000)
+            ->get();
 
-        foreach ($query as $key => $value) {
-            $url .= $key."=".$value."&";
-        }
-
-        return Redirect::away($url);
+        return view('redirect', [
+            'cars' => $cars
+        ]);
     }
 }

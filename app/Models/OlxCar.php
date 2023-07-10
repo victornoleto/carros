@@ -7,11 +7,17 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-class Car extends Model
+class OlxCar extends Model
 {
     use HasFactory;
 
+    protected $table = 'olx_cars';
+
     protected $guarded = [];
+
+    protected $casts = [
+        'olx_updated_at' => 'datetime'
+    ];
 
     public static function search(Request $request): array
     {
@@ -20,18 +26,22 @@ class Car extends Model
         $query->select(
             'brand',
             'model',
-            'version_short as version',
-            'year_fabrication',
+            'version',
+            'year',
             'price',
             'odometer',
         );
 
         // Para carros da mesma versão/ano manter apenas o de menor odometro
         $query->addSelect(
-            DB::raw('rank() over(partition by brand, model, version_short, year_fabrication, odometer order by price asc)')
+            DB::raw('rank() over(partition by brand, model, version, year, odometer order by price asc)')
         );
 
         $query->whereNotNull('odometer');
+
+        $query->where('price', '>', 0);
+
+        //$query->where('active', true); TODO corrigir
 
         if ($request->price_min) {
             $query->where('price', '>=', $request->price_min * 1000);
@@ -42,11 +52,11 @@ class Car extends Model
         }
 
         if ($request->year_min) {
-            $query->where('year_fabrication', '>=', $request->year_min);
+            $query->where('year', '>=', $request->year_min);
         }
 
         if ($request->year_max) {
-            $query->where('year_fabrication', '<=', $request->year_max);
+            $query->where('year', '<=', $request->year_max);
         }
 
         if ($request->odometer_min) {
@@ -64,8 +74,8 @@ class Car extends Model
         $query->groupBy(
             'brand',
             'model',
-            'version_short',
-            'year_fabrication',
+            'version',
+            'year',
             'price',
             'odometer',
         );
@@ -83,7 +93,7 @@ class Car extends Model
         from (
             select
                 *,
-                rank() over(partition by brand, model, version, price, odometer order by year_fabrication desc) as rank2
+                rank() over(partition by brand, model, version, price, odometer order by year desc) as rank2
             from (
                 $innerSql
             ) q

@@ -4,25 +4,30 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        Schema::create('cars', function (Blueprint $table) {
+        Schema::create('olx_cars', function (Blueprint $table) {
             $table->id();
+            $table->bigInteger('olx_id')->unique();
             $table->string('brand');
             $table->string('model');
             $table->string('version')->nullable();
-            $table->string('version_short')->nullable();
-            $table->integer('year_fabrication');
-            $table->integer('year_model');
-            $table->float('price');
+            $table->string('color')->nullable();
+            //$table->string('title');
+            $table->text('url');
             $table->bigInteger('odometer');
+            $table->integer('year');
+            $table->integer('price');
+            $table->integer('old_price')->nullable();
             $table->string('state');
             $table->string('city');
-            $table->integer('webmotors_id')->unique();
+            $table->timestamp('olx_updated_at');
+            $table->boolean('active')->default(false);
             $table->timestamps();
         });
     }
@@ -32,6 +37,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('cars');
+        Schema::dropIfExists('olx_cars');
     }
 };
