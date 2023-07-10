@@ -28,13 +28,18 @@ class OlxCar extends Model
             'model',
             'version',
             'year',
-            'price',
-            'odometer',
+            //'price',
+            //'odometer',
         );
+
+        $price = 'ceil(price::decimal / 10000) * 10000';
+        $odometer = 'ceil(odometer::decimal / 10000) * 10000';
 
         // Para carros da mesma versão/ano manter apenas o de menor odometro
         $query->addSelect(
-            DB::raw('rank() over(partition by brand, model, version, year, odometer order by price asc)')
+            DB::raw("rank() over(partition by brand, model, version, year, ($odometer) order by ($price) asc)"),
+            DB::raw("$price as price"),
+            DB::raw("$odometer as odometer"),
         );
 
         $query->whereNotNull('odometer');

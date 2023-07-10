@@ -24,6 +24,7 @@
                     <th>Modelo</th>
                     <th>Ano</th>
                     <th>Preço (R$)</th>
+                    <th>Quilometragem (Km)</th>
                     <th>Cidade</th>
                     <th>Últ. atual.</th>
                     <th>Ações</th>
@@ -36,6 +37,7 @@
                         <td>{{ mb_strtoupper($car->version ?? $car->model) }}</td>
                         <td>{{ $car->year }}</td>
                         <td>{{ number_format($car->price, 2, ',', '.') }}</td>
+                        <td>{{ number_format($car->odometer, 0, ',', '.') }}</td>
                         <td>{{ $car->city }}/{{ $car->state }}</td>
                         <td>{{ $car->olx_updated_at->format('d M, H:m') }}</td>
                         <td>

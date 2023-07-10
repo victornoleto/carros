@@ -10,19 +10,18 @@ $(function() {
 
     function onChartClick(event, elements) {
 
-        elements.forEach(function(row) {
+        for (let row of elements) {
 
             var data = row.element.$context.raw.data;
-
+    
             console.debug(data);
-
+    
             const params = new URLSearchParams(data);
-
+    
             var url = 'redirect?' + params.toString();
-
+    
             window.open(url,'_blank');
-
-        });
+        }
     }
 
     function createChart(title, dataset) {
