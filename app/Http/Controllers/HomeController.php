@@ -67,54 +67,56 @@ class HomeController extends Controller
             ]);
         }
 
-        $where = [
-            ['year', '>=', $request->year_min],
-            ['year', '<=', $request->year_max],
-            ['price', '>=', $request->price_min * 10000],
-            ['price', '<=', $request->price_max * 10000],
-            ['odometer', '>=', $request->odometer_min * 10000],
-            ['odometer', '<=', $request->odometer_max * 10000],
-        ];
-
         $query = OlxCar::query()
             ->where('active', true)
-            ->where($where)
-            ->when($request->states, function ($query) use ($request) {
+            ->where([
+                ['year', '>=', $request->year_min],
+                ['year', '<=', $request->year_max],
+                ['price', '>=', $request->price_min * 1000],
+                ['price', '<=', $request->price_max * 1000],
+                ['odometer', '>=', $request->odometer_min * 1000],
+                ['odometer', '<=', $request->odometer_max * 1000],
+            ]);
+        
+            $query->when($request->states, function ($query) use ($request) {
                 $query->whereIn('state', $request->states);
-            })
-            ->when($request->cities, function ($query) use ($request) {
+            });
 
-                $query->where(function($query) use ($request) {
+            $query->when($request->cities, function ($query) use ($request) {
+
+                $query->where(function ($query) use ($request) {
 
                     foreach ($request->cities as $text) {
 
                         list($city, $state) = explode('/', $text);
 
-                        $query->orWhere(function($q) use ($city, $state) {
+                        $query->orWhere(function ($q) use ($city, $state) {
                             $q->where('city', $city)->where('state', $state);
                         });
                     }
 
                 });
-            })
-            ->when($request->models, function ($query) use ($request) {
-                
-                $query->where(function($query) use ($request) {
+            });
+
+            $query->when($request->models, function ($query) use ($request) {
+
+                $query->where(function ($query) use ($request) {
 
                     foreach ($request->models as $text) {
 
                         list($brand, $model) = explode(' ', $text);
 
-                        $query->orWhere(function($q) use ($brand, $model) {
+                        $query->orWhere(function ($q) use ($brand, $model) {
                             $q->where('brand', $brand)->where('model', $model);
                         });
                     }
 
                 });
-            })
-            ->orderBy('year', 'desc')
-            ->orderBy('price', 'asc')
-            ->orderBy('odometer', 'asc');
+            });
+
+            $query->orderBy('year', 'desc')
+                ->orderBy('price', 'asc')
+                ->orderBy('odometer', 'asc');
 
         $cars = $query->get();
 

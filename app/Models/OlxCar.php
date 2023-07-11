@@ -46,6 +46,8 @@ class OlxCar extends Model
 
         $query->where('price', '>', 0);
 
+        $query->whereRaw('active is true');
+
         if ($request->price_min) {
             $query->where('price', '>=', $request->price_min * 1000);
         }
@@ -72,13 +74,13 @@ class OlxCar extends Model
 
         if ($request->cities) {
 
-            $query->where(function($query) use ($request) {
+            $query->where(function ($query) use ($request) {
 
                 foreach ($request->cities as $text) {
 
                     list($city, $state) = explode('/', $text);
 
-                    $query->orWhere(function($q) use ($city, $state) {
+                    $query->orWhere(function ($q) use ($city, $state) {
                         $q->where('city', $city);
                         $q->where('state', $state);
                     });
@@ -89,13 +91,13 @@ class OlxCar extends Model
 
         if ($request->models) {
 
-            $query->where(function($query) use ($request) {
+            $query->where(function ($query) use ($request) {
 
                 foreach ($request->models as $text) {
 
                     list($brand, $model) = explode(' ', $text);
 
-                    $query->orWhere(function($q) use ($brand, $model) {
+                    $query->orWhere(function ($q) use ($brand, $model) {
                         $q->where('brand', $brand);
                         $q->where('model', $model);
                     });

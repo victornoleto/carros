@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\OlxCar;
+use App\Models\OlxCarPrice;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -86,12 +87,33 @@ class OlxProcessCarJob implements ShouldQueue
     private function save(array $data)
     {
 
-        $car = OlxCar::updateOrCreate(
+        $car = OlxCar::firstOrNew(
             ['olx_id' => $data['olx_id']],
-            $data
         );
 
-        OlxUpdateCarJob::dispatch($car)->onQueue('olx-update-car');
+        $oldPrice = $car->price;
+
+        foreach ($data as $key => $value) {
+            $car->$key = $value;
+        }
+
+        $car->save();
+
+        if ($oldPrice && $oldPrice != $car->price) {
+            
+            $this->log('Price changed from '.$oldPrice.' to '.$car->price);
+
+            OlxCarPrice::create([
+                'olx_car_id' => $car->id,
+                'price' => $car->price,
+                'old_price' => $oldPrice,
+                'diff' => $car->price - $oldPrice,
+                'olx_updated_at' => $car->olx_updated_at,
+                'created_at' => Carbon::now()
+            ]);
+        }
+
+        //OlxUpdateCarJob::dispatch($car)->onQueue('olx-update-car');
 
         $this->log("Car saved #".$car->id);
     }

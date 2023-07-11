@@ -22,10 +22,10 @@ $(function() {
             filters.models = [data.brand + ' ' + data.model];
 
             filters.price_max = data.price / 1000;
-            filters.price_min = (data.price / 1000) - 10;
+            filters.price_min = Math.max((data.price / 1000) - 10, 0);
 
-            filters.odometer_max = (data.odometer / 1000) + 10;
-            filters.odometer_min = data.odometer / 1000;
+            filters.odometer_max = data.odometer / 1000;
+            filters.odometer_min = Math.max((data.odometer / 1000) - 10, 0);
 
             if (!filters.year_max || data.year > filters.year_max) {
                 filters.year_max = data.year;
