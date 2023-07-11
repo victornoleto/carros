@@ -1,0 +1,226 @@
+.select2-container {
+    --s2-color: #eee; // cor dos textos do input
+    --s2-placeholder-color: #ddd; // cor do placeholder
+    --s2-min-height: 40px; // tamanho do input
+    --s2-border-radius: var(--bs-border-radius); // border radius do input
+    --s2-border-color: #ddd; // cor da borda do input
+    --s2-active-border-color: var(--s2-border-color); // cor da borda do input quando estiver ativo
+    --s2-padding-x: 12px; // padding lateral do input
+    --s2-option-padding: 8px var(--s2-padding-x); // padding das opções do dropdown
+    --s2-option-hover-bg-color: var(--bs-info); // cor do background da opção ao passar o mouse por cima
+    --s2-option-hover-text-color: var(--bs-info-text-emphasis); // cor do texto da opção ao passar o mouse por cima
+    --s2-option-active-bg-color: var(--bs-dark); // cor do background da opção selecionada
+    --s2-option-active-text-color: var(--bs-light); // cor do texto da opção selecionada
+
+    // variáveis relacionadas com o select multiple
+    --s2-choices-padding: 5px;
+    --s2-choices-bg-color: var(--bs-dark);
+    --s2-choices-border-color: var(--bs-dark);
+    --s2-choices-text-color: var(--bs-light);
+
+    /* SELECTION */
+    .selection {
+        width: 100%;
+
+        .select2-selection {
+            display: flex;
+            height: unset;
+            border-radius: var(--s2-border-radius);
+            border: 1px solid var(--s2-border-color);
+
+            .select2-selection__rendered {
+            }
+
+            &.select2-selection--single {
+                height: var(--s2-min-height);
+
+                .select2-selection__rendered {
+                    height: 100%;
+                    display: flex;
+                    align-items: center;
+                    padding: 0 var(--s2-padding-x);
+                }
+            }
+
+            &.select2-selection--multiple {
+                min-height: var(--s2-min-height);
+                padding: var(--s2-choices-padding);
+                padding-top: 0;
+                padding-left: 0;
+
+                .select2-search--inline {
+                    height: calc(var(--s2-min-height) - calc(2 * var(--s2-choices-padding)));
+                    display: inline-flex;
+                    margin: var(--s2-choices-padding);
+                    margin-bottom: 0;
+                    margin-right: 0;
+
+                    .select2-search__field {
+                        font-family: unset;
+                        padding: 0;
+                        margin: 0;
+                        height: 100%;
+                        line-height: calc(var(--s2-min-height) - calc(2 * var(--s2-choices-padding)));
+                    }
+                }
+
+                .select2-selection__rendered {
+                    margin: 0;
+
+                    .select2-selection__choice {
+                        height: calc(var(--s2-min-height) - calc(2 * var(--s2-choices-padding)));
+                        display: inline-flex;
+                        flex-direction: row-reverse;
+                        padding: 0 var(--s2-choices-padding);
+                        align-items: center;
+                        background-color: var(--s2-choices-bg-color);
+                        border-color: var(--s2-choices-border-color);
+                        color: var(--s2-choices-text-color);
+
+                        .select2-selection__choice__remove {
+                            all: unset;
+                            display: flex;
+                            cursor: pointer;
+
+                            span {
+                                margin-top: -3px;
+                                margin-left: 5px;
+                            }
+                        }
+
+                        .select2-selection__choice__display {
+                            padding: 0;
+                            font-size: 90%;
+                        }
+                    }
+                }
+            }
+
+            .select2-selection__arrow,
+            .select2-selection__clear {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin-left: auto;
+                position: absolute;
+                top: 0;
+                right: 0;
+                padding: 0;
+                width: var(--s2-min-height);
+                height: 100%;
+                color: var(--s2-placeholder-color);
+
+                &:after {
+                    font-family: "Font Awesome 6 Pro";
+                    font-size: 14px;
+                    font-weight: 300;
+                }
+
+                b, span {
+                    display: none;
+                }
+            }
+
+            .select2-selection__arrow:after {
+                content: "\f078";
+            }
+
+            .select2-selection__clear {
+                margin: 0;
+
+                &:after {
+                    content: "\f12d";
+                }
+            }
+
+            .select2-selection__placeholder {
+                color: var(--s2-placeholder-color);
+            }
+
+            .select2-selection__clear + .select2-selection__rendered + .select2-selection__arrow {
+                right: var(--s2-min-height);
+            }
+        }
+    }
+
+    /* DROPDOWN */
+    .select2-dropdown {
+        border-color: var(--s2-active-border-color);
+        border-radius: var(--s2-border-radius);
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+
+        .select2-search {
+            padding: 0;
+            border-bottom: 1px solid var(--s2-active-border-color);
+
+            .select2-search__field {
+                outline: none;
+                border: none;
+                padding: 10px var(--s2-padding-x);
+                font-size: 90%;
+            }
+        }
+
+        .select2-results {
+            .select2-results__options {
+                .select2-results__option {
+                    padding: var(--s2-option-padding);
+
+                    /* opção que está com o "hover" */
+                    &.select2-results__option--highlighted {
+                        background-color: var(--s2-option-hover-bg-color);
+                        color: var(--s2-option-hover-text-color);
+                    }
+
+                    /* opção selecionada */
+                    &.select2-results__option--selected {
+                        background-color: var(--s2-option-active-bg-color) !important;
+                        color: var(--s2-option-active-text-color) !important;
+                    }
+
+                    .select2-results__option-text {
+                        display: flex;
+                        flex-direction: column;
+
+                        small {
+                            display: flex;
+                            align-items: center;
+                            opacity: 0.5;
+
+                            i {
+                                width: 15px;
+                                text-align: center;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /* DROPDOWN ABERTO */
+    &.select2-container--open {
+
+        /* DROPDOWN ABERTO: SELECTION */
+        .selection {
+
+            .select2-selection {
+                border-color: var(--s2-active-border-color);
+            }
+        }
+
+        /* DROPDOWN ABERTO: DROPDOWN */
+        .select2-dropdown {
+        }
+    }
+}
+
+/* HACKS */
+.select2[data-selected-count="0"] + .select2-container {
+
+    .select2-search {
+        margin-left: var(--s2-padding-x) !important;
+        width: 100%;
+    }
+}

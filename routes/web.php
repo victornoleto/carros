@@ -10,4 +10,4 @@ Route::get('/', [HomeController::class, 'index']);
 
 Route::get('/cars', [HomeController::class, 'cars']);
 
-Route::get('/redirect', [HomeController::class, 'redirect']);
+Route::get('/table', [HomeController::class, 'table']);

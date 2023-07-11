@@ -46,8 +46,6 @@ class OlxCar extends Model
 
         $query->where('price', '>', 0);
 
-        //$query->where('active', true); TODO corrigir
-
         if ($request->price_min) {
             $query->where('price', '>=', $request->price_min * 1000);
         }
@@ -68,9 +66,45 @@ class OlxCar extends Model
             $query->where('odometer', '>=', $request->odometer_min * 1000);
         }
 
-        if ($request->odometer_max) {
-            $query->where('odometer', '<=', $request->odometer_max * 1000);
+        if ($request->states) {
+            $query->whereIn('state', $request->states);
         }
+
+        if ($request->cities) {
+
+            $query->where(function($query) use ($request) {
+
+                foreach ($request->cities as $text) {
+
+                    list($city, $state) = explode('/', $text);
+
+                    $query->orWhere(function($q) use ($city, $state) {
+                        $q->where('city', $city);
+                        $q->where('state', $state);
+                    });
+                }
+
+            });
+        }
+
+        if ($request->models) {
+
+            $query->where(function($query) use ($request) {
+
+                foreach ($request->models as $text) {
+
+                    list($brand, $model) = explode(' ', $text);
+
+                    $query->orWhere(function($q) use ($brand, $model) {
+                        $q->where('brand', $brand);
+                        $q->where('model', $model);
+                    });
+                }
+
+            });
+        }
+
+        $query->where('odometer', '<=', $request->get('odometer_max', 300) * 1000);
 
         if ($request->state) {
             $query->where('state', $request->state);
@@ -81,9 +115,12 @@ class OlxCar extends Model
             'model',
             'version',
             'year',
-            'price',
-            'odometer',
+            DB::raw($price),
+            DB::raw($odometer)
         );
+
+        $query->orderBy('brand')
+            ->orderBy('model');
 
         $innerSql = vsprintf(
             str_replace('?', '%s', $query->toSql()),
@@ -102,6 +139,7 @@ class OlxCar extends Model
             from (
                 $innerSql
             ) q
+            where q.rank = 1
         ) q2
         where q2.rank2 = 1";
 

@@ -17,8 +17,25 @@ class Playground extends Command
             //'audi a4',
             //'mitsubishi lancer',
             //'vw-volkswagen jetta',
-            'honda civic',
-            'toyota corolla',
+            //'honda civic',
+            //'toyota corolla',
+            //'mercedes-benz c-180',
+            //'honda city',
+            //'vw-volkswagen virtus',
+            //'vw-volkswagen polo',
+            //'peugeot 208',
+            //'ford mustang',
+            //'nissan sentra',
+            //'ford fusion',
+            //'hyundai hb20',
+            //'hyundai hb20s',
+            //'gm-chevrolet camaro',
+            //'gm-chevrolet onix',
+            //'vw-volkswagen gol',
+            //'fiat argo',
+            //'audi a5',
+            'nissan 370z',
+            'nissan 350z'
         ];
 
         foreach ($list as $item) {

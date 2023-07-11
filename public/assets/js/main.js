@@ -10,18 +10,35 @@ $(function() {
 
     function onChartClick(event, elements) {
 
+        var filters = getFilters();
+
+        filters.year_max = null;
+        filters.year_min = null;
+
         for (let row of elements) {
 
             var data = row.element.$context.raw.data;
     
-            console.debug(data);
-    
-            const params = new URLSearchParams(data);
-    
-            var url = 'redirect?' + params.toString();
-    
-            window.open(url,'_blank');
+            filters.models = [data.brand + ' ' + data.model];
+
+            filters.price_max = data.price / 1000;
+            filters.price_min = (data.price / 1000) - 10;
+
+            filters.odometer_max = (data.odometer / 1000) + 10;
+            filters.odometer_min = data.odometer / 1000;
+
+            if (!filters.year_max || data.year > filters.year_max) {
+                filters.year_max = data.year;
+            }
+
+            if (!filters.year_min || data.year < filters.year_min) {
+                filters.year_min = data.year;
+            }
         }
+
+        var query = new URLSearchParams(filters).toString();
+
+        window.open('table?' + query, '_blank').focus();
     }
 
     function createChart(title, dataset) {
@@ -123,7 +140,7 @@ $(function() {
 
     function getFilters() {
 
-        var $form = $('#filters form');
+        var $form = $('form#filters');
 
         var filters = {};
 
@@ -137,6 +154,20 @@ $(function() {
             if (value) {
                 filters[name] = value;
             }
+        });
+
+        $form.find('select').each(function() {
+
+            var $select = $(this);
+
+            var name = $select.attr('name').replace('[]', '');
+
+            var value = $select.val();
+
+            if (value) {
+                filters[name] = value;
+            }
+
         });
 
         return filters;

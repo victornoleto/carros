@@ -10,7 +10,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
-use Symfony\Component\DomCrawler\Crawler; 
+use Symfony\Component\DomCrawler\Crawler;
 
 class OlxProcessCarJob implements ShouldQueue
 {
@@ -33,31 +33,45 @@ class OlxProcessCarJob implements ShouldQueue
      */
     public function handle(): void
     {
-        $this->node = new Crawler($this->contents);
+        try {
 
-        list($url, $id) = $this->getCarUrlAndId();
+            $this->node = new Crawler($this->contents);
+    
+            list($url, $id) = $this->getCarUrlAndId();
+    
+            list($city, $state) = $this->getCarStateAndCity();
+    
+            list($price, $oldPrice) = $this->getCarPrice();
+    
+            $data = [
+                'olx_id' => $id,
+                'brand' => $this->brand,
+                'model' => $this->model,
+                //'title' => $this->getCarTitle(),
+                'url' => $url,
+                'odometer' => $this->getCarOdometer(),
+                'year' => $this->getCarYear(),
+                'price' => $price,
+                'old_price' => $oldPrice,
+                'state' => $state,
+                'city' => $city,
+                'olx_updated_at' => $this->getCarUpdatedAt(),
+                'active' => true
+            ];
+    
+            $this->save($data);
 
-        list($city, $state) = $this->getCarStateAndCity();
+        } catch (\Exception $e) {
 
-        list($price, $oldPrice) = $this->getCarPrice();
+            $message = $e->getMessage();
 
-        $data = [
-            'olx_id' => $id,
-            'brand' => $this->brand,
-            'model' => $this->model,
-            //'title' => $this->getCarTitle(),
-            'url' => $url,
-            'odometer' => $this->getCarOdometer(),
-            'year' => $this->getCarYear(),
-            'price' => $price,
-            'old_price' => $oldPrice,
-            'state' => $state,
-            'city' => $city,
-            'olx_updated_at' => $this->getCarUpdatedAt(),
-            'active' => true
-        ];
+            if ($message == 'Price not found.') {
+                $this->log('Price not found.', 'error');
 
-        $this->save($data);
+            } else {
+                throw $e;
+            }
+        }
     }
 
     public function failed(\Throwable $exception)
@@ -69,7 +83,8 @@ class OlxProcessCarJob implements ShouldQueue
         $this->log($this->contents, 'error');
     }
 
-    private function save(array $data) {
+    private function save(array $data)
+    {
 
         $car = OlxCar::updateOrCreate(
             ['olx_id' => $data['olx_id']],
@@ -81,12 +96,14 @@ class OlxProcessCarJob implements ShouldQueue
         $this->log("Car saved #".$car->id);
     }
 
-    private function getCarTitle(): string {
+    private function getCarTitle(): string
+    {
 
         return $this->node->filter('h2.title')->text();
     }
 
-    private function getCarUrlAndId(): array {
+    private function getCarUrlAndId(): array
+    {
 
         $url = $this->node->filter('[data-ds-component="DS-NewAdCard-Link"]')->attr('href');
 
@@ -97,7 +114,8 @@ class OlxProcessCarJob implements ShouldQueue
         return [$url, $id];
     }
 
-    private function getCarOdometer(): int {
+    private function getCarOdometer(): int
+    {
 
         $elements = $this->node->filter('[data-testid="ds-adcard-content"]')
             ->children()
@@ -115,7 +133,8 @@ class OlxProcessCarJob implements ShouldQueue
         return $odometer;
     }
 
-    private function getCarYear(): int {
+    private function getCarYear(): int
+    {
 
         $elements = $this->node->filter('[data-testid="ds-adcard-content"]')
             ->children()
@@ -129,7 +148,8 @@ class OlxProcessCarJob implements ShouldQueue
         return $year;
     }
 
-    private function getCarPrice(): array {
+    private function getCarPrice(): array
+    {
 
         $priceNode = $this->node->filter('h3.price');
 
@@ -151,7 +171,8 @@ class OlxProcessCarJob implements ShouldQueue
         return [$price, $oldPrice];
     }
 
-    private function getCarStateAndCity(): array {
+    private function getCarStateAndCity(): array
+    {
 
         $elements = $this->node->filter('[data-testid="ds-adcard-content"]')
             ->children()->eq(1)
@@ -166,7 +187,8 @@ class OlxProcessCarJob implements ShouldQueue
         return $parts;
     }
 
-    private function getCarUpdatedAt(): string {
+    private function getCarUpdatedAt(): string
+    {
 
         $elements = $this->node->filter('[data-testid="ds-adcard-content"]')
             ->children()->eq(1)
@@ -185,7 +207,8 @@ class OlxProcessCarJob implements ShouldQueue
         return $text;
     }
 
-    private function formatPriceStringToFloat(string $price): int {
+    private function formatPriceStringToFloat(string $price): int
+    {
             
         $price = str_replace('R$ ', '', $price);
 
@@ -198,12 +221,13 @@ class OlxProcessCarJob implements ShouldQueue
         return $price;
     }
 
-    private function formatDateFromOlxFormat(string $date): string {
+    private function formatDateFromOlxFormat(string $date): string
+    {
 
         if ($date == 'Hoje') {
             return date('Y-m-d');
         
-        } else if ($date == 'Ontem') {
+        } elseif ($date == 'Ontem') {
             return date('Y-m-d', strtotime('-1 day'));
         
         } else {
@@ -231,7 +255,8 @@ class OlxProcessCarJob implements ShouldQueue
         }
     }
 
-    private function log(string $message, string $channel = 'debug'): void {
+    private function log(string $message, string $channel = 'debug'): void
+    {
 
         Log::$channel('[OlxProcessCar]['.$this->brand.']['.$this->model.'] '.$message);
     }
