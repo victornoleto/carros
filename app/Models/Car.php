@@ -6,12 +6,46 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class Car extends Model
 {
     use HasFactory;
 
     protected $guarded = [];
+
+    public static function boot() {
+
+        parent::boot();
+
+        static::updating(function (Car $car) {
+
+            if ($car->price && $car->isDirty('price')) {
+
+                $oldPrice = $car->getOriginal('price');
+
+                CarPrice::create([
+                    'car_id' => $car->id,
+                    'price' => $car->price,
+                    'old_price' => $oldPrice,
+                    'diff' => $car->price - $oldPrice,
+                    'updated_at' => $car->provider_updated_at,
+                    'created_at' => now()
+                ]);
+            }
+
+        });
+    }
+
+    public static function disable(string $provider): void
+    {
+        Car::query()
+            ->where('provider', $provider)
+            ->where('active', true)
+            ->update([
+                'active' => false
+            ]);
+    }
 
     public static function search(Request $request): array
     {

@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\OlxCar;
+use App\Models\Car;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -11,9 +11,9 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('olx_car_prices', function (Blueprint $table) {
+        Schema::create('car_prices', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(OlxCar::class)->constrained();
+            $table->foreignIdFor(Car::class)->constrained();
             $table->float('price');
             $table->float('old_price');
             $table->float('diff');
@@ -27,6 +27,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('olx_car_prices');
+        Schema::dropIfExists('car_prices');
     }
 };

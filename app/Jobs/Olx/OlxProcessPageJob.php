@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Jobs;
+namespace App\Jobs\Olx;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -11,6 +10,13 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\DomCrawler\Crawler;
 
+/**
+ * Processar página de anúncio da Olx.
+ *
+ * @author Victor Noleto <victornoleto@sysout.com.br>
+ * @since 11/07/2023 
+ * @version 1.0.0
+ */
 class OlxProcessPageJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
@@ -38,15 +44,12 @@ class OlxProcessPageJob implements ShouldQueue
         $this->log('Processing '.count($ads).' ads...');
 
         $ads->reduce(function(Crawler $node, $i) {
-            $this->processAd($node->html());
+            
+            $contents = $node->html();
+
+            OlxProcessCarJob::dispatch($this->brand, $this->model, $contents)
+                ->onQueue('olx:process');
         });
-    }
-
-    private function processAd(string $contents) {
-
-        $job = new OlxProcessCarJob($this->brand, $this->model, $contents);
-
-        dispatch($job)->onQueue('olx-process-car');
     }
 
     private function log(string $message, string $channel = 'debug'): void {

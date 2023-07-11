@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\CarProviderEnum;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -15,14 +16,17 @@ return new class extends Migration {
             $table->string('brand');
             $table->string('model');
             $table->string('version')->nullable();
-            $table->string('version_short')->nullable();
-            $table->integer('year_fabrication');
-            $table->integer('year_model');
+            $table->integer('year');
+            $table->integer('year_model')->nullable();
             $table->float('price');
             $table->bigInteger('odometer');
-            $table->string('state');
+            $table->string('state', 2);
             $table->string('city');
-            $table->integer('webmotors_id')->unique();
+            $table->enum('provider', CarProviderEnum::getValues());
+            $table->string('provider_id');
+            $table->timestamp('provider_updated_at');
+            $table->string('provider_url')->nullable();
+            $table->boolean('active')->default(true);
             $table->timestamps();
         });
     }
