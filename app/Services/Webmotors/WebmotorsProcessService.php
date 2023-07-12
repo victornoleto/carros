@@ -83,11 +83,6 @@ class WebmotorsProcessService extends CarProcessService {
         return null;
     }
 
-    public function getProcessIdentifier(): string
-    {
-        return json_encode($this->data);
-    }
-
 	private function getStateAndCity(): array {
 
 		$location = $this->data['location'];
@@ -96,5 +91,4 @@ class WebmotorsProcessService extends CarProcessService {
 
 		return [$state, $city];
 	}
-
 }

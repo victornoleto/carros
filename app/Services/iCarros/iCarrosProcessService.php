@@ -108,12 +108,7 @@ class iCarrosProcessService extends CarProcessService
         $url = $this->node->filter('.offer-card__image-container')
             ->attr('href');
 
-        return iCarrosSyncService::$url.$url;
-    }
-
-    public function getProcessIdentifier(): string
-    {
-        return $this->contents;
+        return iCarrosSyncService::$serverUrl.$url;
     }
 
     private function getStateAndCity(): array

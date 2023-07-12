@@ -62,6 +62,4 @@ abstract class CarProcessService {
     abstract public function getProviderUpdatedAt(): Carbon;
 
     abstract public function getProviderUrl(): string|null;
-
-    abstract public function getProcessIdentifier(): string;
 }

@@ -2,14 +2,15 @@
 
 namespace App\Jobs\Webmotors;
 
+use App\Enums\CarProviderEnum;
 use App\Jobs\CarProcessJob;
 use App\Models\Car;
 
 class WebmotorsProcessJob extends CarProcessJob
 {
-    public function getAdData(): array
+    public function getProvider(): CarProviderEnum
     {
-        return [];
+        return CarProviderEnum::WEBMOTORS();
     }
 
     public function onCarSaved(Car $car): void

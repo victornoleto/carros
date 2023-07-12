@@ -29,7 +29,10 @@ class CarSyncCommand extends Command
                 'recursive' => true,
             ]);
 
-            $job->onQueue($provider->getSyncQueueName());
+            dispatch($job)
+                ->onQueue($provider->getSyncQueueName());
+
+            return;
         }
     }
 }

@@ -2,30 +2,19 @@
 
 namespace App\Jobs\iCarros;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
+use App\Enums\CarProviderEnum;
+use App\Jobs\CarProcessJob;
+use App\Models\Car;
 
-class iCarrosProcessJob implements ShouldQueue
+class iCarrosProcessJob extends CarProcessJob
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-
-    /**
-     * Create a new job instance.
-     */
-    public function __construct()
+    public function getProvider(): CarProviderEnum
     {
-        //
+        return CarProviderEnum::ICARROS();
     }
 
-    /**
-     * Execute the job.
-     */
-    public function handle(): void
+    public function onCarSaved(Car $car): void
     {
-        //
+        
     }
 }

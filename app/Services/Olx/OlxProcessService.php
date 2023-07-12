@@ -160,11 +160,6 @@ class OlxProcessService extends CarProcessService
         return $this->getUrlAndId()[0];
     }
 
-    public function getProcessIdentifier(): string
-    {
-        return $this->contents;
-    }
-
     private function getUrlAndId(): array
     {
 

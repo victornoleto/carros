@@ -9,6 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 
 abstract class CarSyncJob implements ShouldQueue
 {
@@ -28,8 +29,12 @@ abstract class CarSyncJob implements ShouldQueue
     ) {
     }
 
+    abstract public function getProvider(): CarProviderEnum;
+
     public function handle(): void
     {
+        $this->log('Starting');
+
         $provider = $this->getProvider();
 
         if ($this->page == 1 && $this->recursive) {
@@ -38,9 +43,17 @@ abstract class CarSyncJob implements ShouldQueue
 
         $syncService = $provider->getSyncService();
 
+        $startTime = microtime(true);
+
         $pageResult = $syncService->getPageResult($this->brand, $this->model, $this->page);
 
+        $elapsedTime = round(microtime(true) - $startTime, 2);
+
+        $this->log(sprintf('Page result received in %s seconds', $elapsedTime));
+
         $adResults = $syncService->getAdResults($pageResult);
+
+        $this->log(sprintf('Found %s ads', count($adResults)));
 
         foreach ($adResults as $adResult) {
 
@@ -52,7 +65,8 @@ abstract class CarSyncJob implements ShouldQueue
                 'adResult' => $adResult,
             ]);
 
-            $processJob->onQueue($provider->getProcessQueueName());
+            dispatch($processJob)
+                ->onQueue($provider->getProcessQueueName());
         }
 
         if (count($adResults) > 0 && $this->recursive) {
@@ -67,5 +81,19 @@ abstract class CarSyncJob implements ShouldQueue
         return [60, 180, 300];
     }
 
-    abstract public function getProvider(): CarProviderEnum;
+    private function log(string $message, string $channel = 'debug'): void
+    {
+        $provider = $this->getProvider();
+
+        $logMessage = sprintf(
+            '[car-sync][%s][%s][%s][%s] %s',
+            $provider->value,
+            $this->brand,
+            $this->model,
+            $this->page,
+            $message
+        );
+
+        Log::$channel($logMessage);
+    }
 }

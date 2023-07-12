@@ -19,6 +19,12 @@ abstract class CarSyncService {
 		$this->httpClient = new Client($httpClientOptions);
 	}
 
+	abstract function getProvider(): CarProviderEnum;
+
+	abstract function getPageResult(string $brand, string $model, int $page = 1): string|array;
+
+	abstract function getAdResults($pageResult): array;
+
 	public function getResults(string $brand, string $models, int $page = 1): array 
     {
         $pageResult = $this->getPageResult($brand, $models, $page);
@@ -67,10 +73,4 @@ abstract class CarSyncService {
 
         return $data;
     }
-
-	abstract function getProvider(): CarProviderEnum;
-
-	abstract function getPageResult(string $brand, string $model, int $page = 1): string|array;
-
-	abstract function getAdResults($pageResult): array;
 }
