@@ -12,22 +12,16 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\DomCrawler\Crawler;
 
-class OlxUpdateCarJob implements ShouldQueue
+class OlxUpdateJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     private Crawler $node;
 
-    /**
-     * Create a new job instance.
-     */
     public function __construct(public Car $car)
     {
     }
 
-    /**
-     * Execute the job.
-     */
     public function handle(): void
     {
         $contents = Http::get($this->car->provider_url)->body();
@@ -77,7 +71,7 @@ class OlxUpdateCarJob implements ShouldQueue
 
             $this->car->update($updates);
 
-            Log::debug('[CarUpdate]['.$this->car->provider.']['.$this->car->brand.']['.$this->car->model.'] Car updated: #'.$this->car->id);
+            Log::debug('[CAR-UPDATE-JOB]['.$this->car->provider.']['.$this->car->brand.']['.$this->car->model.'] Car updated: #'.$this->car->id);
         }
     }
 }

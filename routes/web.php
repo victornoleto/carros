@@ -11,3 +11,5 @@ Route::get('/', [HomeController::class, 'index']);
 Route::get('/cars', [HomeController::class, 'cars']);
 
 Route::get('/table', [HomeController::class, 'table']);
+
+Route::get('/test/{provider}/{brand}/{model}', [TestController::class, 'index']);

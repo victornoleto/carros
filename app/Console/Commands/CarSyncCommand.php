@@ -2,9 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Jobs\Olx\OlxSyncJob;
-use App\Jobs\Webmotors\WebmotorsSyncJob;
-use App\Models\Car;
+use App\Enums\CarProviderEnum;
 use Illuminate\Console\Command;
 
 class CarSyncCommand extends Command
@@ -17,12 +15,21 @@ class CarSyncCommand extends Command
 
         $model = $this->argument('model');
 
-        /*Car::disable($brand, $model);
+        $providers = CarProviderEnum::getInstances();
 
-        OlxSyncJob::dispatch($brand, $model)
-            ->onQueue('olx:sync');*/
+        foreach ($providers as $provider) {
 
-        WebmotorsSyncJob::dispatchSync($brand, $model);
-        //->onQueue('webmotors:sync');
+            $jobClass = $provider->getSyncJobClass();
+
+            $job = app($jobClass, [
+                'provider' => $provider->value,
+                'brand' => $brand,
+                'model' => $model,
+                'page' => 1,
+                'recursive' => true,
+            ]);
+
+            $job->onQueue($provider->getSyncQueueName());
+        }
     }
 }

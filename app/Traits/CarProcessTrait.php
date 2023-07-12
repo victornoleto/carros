@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Jobs;
+namespace App\Traits;
 
 trait CarProcessTrait {
 
-	public function getCarData(): array {
+	public function getData(): array {
 
 		$data = [
 			'brand' => $this->brand,
@@ -16,7 +16,7 @@ trait CarProcessTrait {
 			'odometer' => $this->getOdometer(),
 			'state' => $this->getState(),
 			'city' => $this->getCity(),
-			'provider' => $this->provider,
+			'provider' => $this->getProvider(),
 			'provider_id' => $this->getProviderId(),
 			'provider_updated_at' => $this->getProviderUpdatedAt()->toDateTimeString(),
 			'provider_url' => $this->getProviderUrl(),

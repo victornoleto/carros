@@ -3,40 +3,27 @@
 namespace App\Jobs\Olx;
 
 use App\Enums\CarProviderEnum;
-use App\Models\Car;
-use App\Services\OlxService;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
+use App\Jobs\CarSyncJob;
+use App\Services\Olx\OlxSyncService;
 
-/**
- * Processar páginas de anúncios da OLX.
- *
- * @author Victor Noleto <victornoleto@sysout.com.br>
- * @since 11/07/2023
- * @version 1.0.0
- */
-class OlxSyncJob implements ShouldQueue
+class OlxSyncJob extends CarSyncJob
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-
-    /**
-     * Create a new job instance.
-     */
     public function __construct(
         public string $brand,
         public string $model,
-        public int $page = 1
-    )
-    {
+        public int $page = 1,
+        public bool $recursive = false
+    ) {
+        parent::__construct(CarProviderEnum::OLX, $brand, $model, $page, $recursive);
     }
 
-    public function handle(): void
+    public function getSyncService(): OlxSyncService
     {
-        $service = new OlxService();
+        return new OlxSyncService();
+    }
 
-        $service->sync($this->brand, $this->model, $this->page);
+    public function getProcessJobClass(): string
+    {
+        return OlxProcessJob::class;
     }
 }

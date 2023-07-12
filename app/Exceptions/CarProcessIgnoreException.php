@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Jobs;
+namespace App\Exceptions;
 
 class CarProcessIgnoreException extends \Exception
 {

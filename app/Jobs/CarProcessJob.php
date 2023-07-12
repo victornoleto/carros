@@ -3,7 +3,7 @@
 namespace App\Jobs;
 
 use App\Enums\CarProviderEnum;
-use App\Jobs\Olx\OlxUpdateCarJob;
+use App\Exceptions\CarProcessIgnoreException;
 use App\Models\Car;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -13,36 +13,24 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Enum;
 
-/**
- * Processar anúncio de carro.
- *
- * @author Victor Noleto <victornoleto@sysout.com.br>
- * @since 11/07/2023
- * @version 1.0.0
- */
-class CarProcess implements ShouldQueue
+class CarProcessJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-
-    use CarProcessTrait;
 
     public function __construct(
         public string $brand,
         public string $model,
-        public string $provider
+        public string $provider,
+        public string $identifier
     ) {
     }
 
     public function handle(): void
     {
-
         try {
 
-            $data = $this->getCarData();
-
-            //$this->log('Car data: '.json_encode($data), 'debug');
+            $data = $this->getAdData();
 
             $this->validate($data);
 
@@ -58,13 +46,13 @@ class CarProcess implements ShouldQueue
 
             $this->log('Car saved: #'.$car->id, 'debug');
 
-            $this->onCarUpdated($car);
+            $this->onCarSaved($car);
 
         } catch (\Exception $e) {
 
             $shouldIgnore = $e instanceof CarProcessIgnoreException;
 
-            //$this->log('Failed: '.$this->getProcessIdentifier(), $shouldIgnore ? 'warning' : 'error');
+            $this->log('Failed: '.$this->identifier, $shouldIgnore ? 'warning' : 'error');
 
             if ($shouldIgnore) {
                 $this->log('Ignored: '.$e->getMessage(), 'warning');
@@ -75,23 +63,17 @@ class CarProcess implements ShouldQueue
         }
     }
 
-    public function getProcessIdentifier(): string
+    public function getAdData(): array
     {
-        return '';
+        throw new CarProcessIgnoreException('Not implemented');
     }
 
-    public function onCarUpdated(Car $car): void
+    public function onCarSaved(Car $car): void
     {
-    }
-
-    public function failed(\Throwable $exception): void
-    {
-        $this->log('Failed: '.$exception->getMessage(), 'error');
     }
 
     private function validate(array $data): void
     {
-
         $maxYear = date('Y') + 1;
 
         $maxPrice = 500_000;
@@ -126,6 +108,6 @@ class CarProcess implements ShouldQueue
 
     private function log(string $message, string $channel = 'debug'): void
     {
-        Log::$channel('[CarProcess]['.$this->provider.']['.$this->brand.']['.$this->model.'] '.$message);
+        Log::$channel('[CAR-PROCESS-JOB]['.$this->provider.']['.$this->brand.']['.$this->model.'] '.$message);
     }
 }

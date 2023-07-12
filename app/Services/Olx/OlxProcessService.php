@@ -1,48 +1,46 @@
 <?php
 
-namespace App\Jobs\Olx;
+namespace App\Services\Olx;
 
 use App\Enums\CarProviderEnum;
 use App\Interfaces\CarProcessInterface;
-use App\Jobs\CarProcess;
-use App\Jobs\CarProcessIgnoreException;
-use App\Models\Car;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
+use App\Exceptions\CarProcessIgnoreException;
+use App\Traits\CarProcessTrait;
+use Illuminate\Support\Carbon;
 use Symfony\Component\DomCrawler\Crawler;
 
 /**
- * Processar anúncio da Olx.
+ * Serviço para converter as informações contidas no conteúdo de um anúncio da Olx.
  *
  * @author Victor Noleto <victornoleto@sysout.com.br>
- * @since 11/07/2023
+ * @since 12/07/2023 
  * @version 1.0.0
  */
-class OlxProcessCarJob extends CarProcess implements CarProcessInterface
+class OlxProcessService implements CarProcessInterface
 {
+    use CarProcessTrait;
+
     public Crawler $node;
 
     public function __construct(
-        string $brand,
-        string $model,
+        public string $brand,
+        public string $model,
         public string $contents
     ) {
-        parent::__construct($brand, $model, CarProviderEnum::OLX);
     }
-    
-    public function handle(): void
-    {
+
+    public function process(): array {
+
         $this->node = new Crawler($this->contents);
 
-        parent::handle();
+        return $this->getData();
     }
 
-    public function onCarUpdated(Car $car): void
+    public function getProvider(): string
     {
-        OlxUpdateCarJob::dispatch($car)
-            ->onQueue('olx:update');
+        return CarProviderEnum::OLX;
     }
-
+    
     public function getProcessIdentifier(): string
     {
         return $this->contents;
@@ -190,7 +188,6 @@ class OlxProcessCarJob extends CarProcess implements CarProcessInterface
 
     private function getStateAndCity(): array
     {
-
         $elements = $this->node->filter('[data-testid="ds-adcard-content"]')
             ->children()->eq(1)
                 ->children()->eq(0)
@@ -199,7 +196,17 @@ class OlxProcessCarJob extends CarProcess implements CarProcessInterface
 
         $text = $elements->eq(0)->text();
 
-        $parts = explode(' - ', $text);
+        $state = env('STATE_FILTER');
+        
+        if ($state) {
+
+            $parts = explode(', ', $text);
+
+            $parts[1] = $state;
+            
+        } else {
+            $parts = explode(' - ', $text);
+        }
 
         return $parts;
     }

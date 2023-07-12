@@ -15,7 +15,6 @@ class Car extends Model
 
     public static function boot()
     {
-
         parent::boot();
 
         static::updating(function (Car $car) {
@@ -37,10 +36,10 @@ class Car extends Model
         });
     }
 
-    public static function disable(string $brand, string $model): void
+    public static function disable(string $provider, string $brand, string $model): void
     {
         Car::query()
-            //->where('provider', $provider)
+            ->where('provider', $provider)
             ->where([
                 'brand' => $brand,
                 'model' => $model,

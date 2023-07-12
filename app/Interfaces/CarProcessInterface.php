@@ -6,6 +6,10 @@ use Carbon\Carbon;
 
 interface CarProcessInterface
 {
+    public function process(): array;
+
+    public function getProvider(): string;
+
     public function getVersion(): string|null;
 
     public function getYear(): int;
