@@ -14,6 +14,12 @@ abstract class CarSyncJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    public $tries = 3;
+
+    public $timeout = 120;
+
+    public $failOnTimeout = true;
+
     public function __construct(
         public string $brand,
         public string $model,
@@ -54,6 +60,11 @@ abstract class CarSyncJob implements ShouldQueue
             self::dispatch($this->brand, $this->model, $this->page + 1, true)
                 ->onQueue($provider->getSyncQueueName());
         }
+    }
+
+    public function backoff(): array
+    {
+        return [60, 180, 300];
     }
 
     abstract public function getProvider(): CarProviderEnum;
