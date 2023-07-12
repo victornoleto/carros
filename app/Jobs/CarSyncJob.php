@@ -4,7 +4,6 @@ namespace App\Jobs;
 
 use App\Enums\CarProviderEnum;
 use App\Models\Car;
-use App\Services\CarSyncService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -16,7 +15,6 @@ abstract class CarSyncJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public function __construct(
-        public string $provider,
         public string $brand,
         public string $model,
         public int $page = 1,
@@ -26,29 +24,29 @@ abstract class CarSyncJob implements ShouldQueue
 
     public function handle(): void
     {
-        $provider = CarProviderEnum::fromValue($this->provider);
+        $provider = $this->getProvider();
 
         if ($this->page == 1 && $this->recursive) {
-            Car::disable($this->provider, $this->brand, $this->model);
+            Car::disable($provider->value, $this->brand, $this->model);
         }
 
-        $service = $this->getSyncService();
+        $syncService = $provider->getSyncService();
 
-        $pageResult = $service->getPageResult($this->brand, $this->model, $this->page);
+        $pageResult = $syncService->getPageResult($this->brand, $this->model, $this->page);
 
-        $adResults = $service->getAdResults($pageResult);
+        $adResults = $syncService->getAdResults($pageResult);
 
         foreach ($adResults as $adResult) {
 
-            $jobClass = $this->getProcessJobClass();
+            $processJobClass = $provider->getProcessJobClass();
 
-            $job = app($jobClass, [
+            $processJob = app($processJobClass, [
                 'brand' => $this->brand,
                 'model' => $this->model,
                 'adResult' => $adResult,
             ]);
 
-            $job->onQueue($provider->getProcessQueueName());
+            $processJob->onQueue($provider->getProcessQueueName());
         }
 
         if (count($adResults) > 0 && $this->recursive) {
@@ -58,7 +56,5 @@ abstract class CarSyncJob implements ShouldQueue
         }
     }
 
-    abstract public function getSyncService(): CarSyncService;
-
-    abstract public function getProcessJobClass(): string;
+    abstract public function getProvider(): CarProviderEnum;
 }

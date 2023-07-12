@@ -3,48 +3,34 @@
 namespace App\Services\iCarros;
 
 use App\Enums\CarProviderEnum;
-use App\Interfaces\CarProcessInterface;
-use App\Traits\CarProcessTrait;
+use App\Services\CarProcessService;
 use Illuminate\Support\Carbon;
 use Symfony\Component\DomCrawler\Crawler;
 
-/**
- * Serviço para converter as informações contidas no conteúdo de um anúncio da iCarros.
- *
- * @author Victor Noleto <victornoleto@sysout.com.br>
- * @since 12/07/2023 
- * @version 1.0.0
- */
-class iCarrosProcessService implements CarProcessInterface
+class iCarrosProcessService extends CarProcessService
 {
-    use CarProcessTrait;
-
     public Crawler $node;
 
     public function __construct(
-        public string $brand,
-        public string $model,
+        string $brand,
+        string $model,
         public string $contents
     ) {
+        parent::__construct($brand, $model);
     }
 
-    public function process(): array {
+    public function getData(): array {
 
         $this->node = new Crawler($this->contents);
 
-        return $this->getData();
+        return parent::getData();
     }
 
-    public function getProvider(): string
+    public function getProvider(): CarProviderEnum
     {
-        return CarProviderEnum::ICARROS;
+        return CarProviderEnum::ICARROS();
     }
     
-    public function getProcessIdentifier(): string
-    {
-        return $this->contents;
-    }
-
     public function getVersion(): string|null
     {
         $version = $this->node->filter('.offer-card__header a')
@@ -123,6 +109,11 @@ class iCarrosProcessService implements CarProcessInterface
             ->attr('href');
 
         return iCarrosSyncService::$url.$url;
+    }
+
+    public function getProcessIdentifier(): string
+    {
+        return $this->contents;
     }
 
     private function getStateAndCity(): array

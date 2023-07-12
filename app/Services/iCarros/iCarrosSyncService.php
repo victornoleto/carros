@@ -2,25 +2,22 @@
 
 namespace App\Services\iCarros;
 
+use App\Enums\CarProviderEnum;
 use App\Services\CarSyncService;
-use App\Services\iCarros\iCarrosProcessService;
-use App\Traits\CarSyncTrait;
-use GuzzleHttp\Client;
 use Symfony\Component\DomCrawler\Crawler;
 
 class iCarrosSyncService extends CarSyncService {
 
-	public static $url = "https://www.icarros.com.br";
-
-	use CarSyncTrait;
-
-    private Client $httpClient;
+	public static $serverUrl = 'https://www.icarros.com.br';
 
     public function __construct()
     {
-        $this->httpClient = new Client([
-            'verify' => false,
-        ]);
+        parent::__construct();
+    }
+
+    public function getProvider(): CarProviderEnum
+    {
+        return CarProviderEnum::ICARROS();
     }
 
     public function getPageResult(string $brand, string $model, int $page = 1): string
@@ -32,7 +29,7 @@ class iCarrosSyncService extends CarSyncService {
         return $response->getBody()->getContents();
     }
 
-    public function getAdResults(string $pageResult): array
+    public function getAdResults($pageResult): array
     {
         if (!$this->checkPageHasAds($pageResult)) {
             return [];
@@ -56,15 +53,6 @@ class iCarrosSyncService extends CarSyncService {
         return $ads;
     }
 
-    public function getAdData(string $brand, string $model, string $adResult): array
-    {
-        $service = new iCarrosProcessService($brand, $model, $adResult);
-
-        $data = $service->process();
-
-        return $data;
-    }
-
     private function checkPageHasAds(string $contents): bool
     {
         $crawler = new Crawler($contents);
@@ -77,7 +65,7 @@ class iCarrosSyncService extends CarSyncService {
 
 	private function getPageUrl(string $brand, string $model, int $page = 1): string
 	{
-		$url = self::$url."/comprar/$brand/$model?pag=$page";
+		$url = self::$serverUrl."/comprar/$brand/$model?pag=$page";
 
 		return $url;
 	}

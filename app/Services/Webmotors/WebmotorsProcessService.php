@@ -3,36 +3,22 @@
 namespace App\Services\Webmotors;
 
 use App\Enums\CarProviderEnum;
-use App\Interfaces\CarProcessInterface;
-use App\Traits\CarProcessTrait;
+use App\Services\CarProcessService;
 use Illuminate\Support\Carbon;
 
-/**
- * Serviço para converter as informações contidas no conteúdo de um anúncio da Webmotors.
- *
- * @author Victor Noleto <victornoleto@sysout.com.br>
- * @since 12/07/2023 
- * @version 1.0.0
- */
-class WebmotorsProcessService implements CarProcessInterface {
-
-	use CarProcessTrait;
+class WebmotorsProcessService extends CarProcessService {
 
 	public function __construct(
-        public string $brand,
-        public string $model,
+        string $brand,
+        string $model,
         public array $data
     ) {
+        parent::__construct($brand, $model);
     }
 
-	public function process(): array
+    public function getProvider(): CarProviderEnum
     {
-        return $this->getData();
-    }
-
-    public function getProvider(): string
-    {
-        return CarProviderEnum::WEBMOTORS;
+        return CarProviderEnum::WEBMOTORS();
     }
 
     public function getVersion(): string|null

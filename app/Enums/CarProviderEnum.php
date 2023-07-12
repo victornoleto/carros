@@ -2,11 +2,15 @@
 
 namespace App\Enums;
 
+use App\Jobs\Olx\OlxProcessJob;
 use App\Jobs\Olx\OlxSyncJob;
+use App\Jobs\Webmotors\WebmotorsProcessJob;
 use App\Jobs\Webmotors\WebmotorsSyncJob;
 use App\Services\CarSyncService;
 use App\Services\iCarros\iCarrosSyncService;
+use App\Services\Olx\OlxProcessService;
 use App\Services\Olx\OlxSyncService;
+use App\Services\Webmotors\WebmotorsProcessService;
 use App\Services\Webmotors\WebmotorsSyncService;
 use BenSampo\Enum\Enum;
 
@@ -36,6 +40,24 @@ final class CarProviderEnum extends Enum
         }
     }
 
+    public function getProcessServiceClass(): string {
+
+        switch ($this->value) {
+            
+            case self::OLX:
+                return OlxProcessService::class;
+            
+            case self::WEBMOTORS:
+                return WebmotorsProcessService::class;
+            
+            case self::ICARROS:
+                return iCarrosSyncService::class;
+
+            default:
+                throw new \Exception("Process service class not found for $this->value provider.");
+        }
+    }
+
     public function getSyncJobClass(): string {
 
         switch ($this->value) {
@@ -50,7 +72,25 @@ final class CarProviderEnum extends Enum
                 return iCarrosSyncJob::class;
 
             default:
-                throw new \Exception("Sync job not found for $this->value provider.");
+                throw new \Exception("Sync job class not found for $this->value provider.");
+        }
+    }
+
+    public function getProcessJobClass(): string {
+
+        switch ($this->value) {
+            
+            case self::OLX:
+                return OlxProcessJob::class;
+            
+            case self::WEBMOTORS:
+                return WebmotorsProcessJob::class;
+            
+            case self::ICARROS:
+                return iCarrosSyncJob::class;
+
+            default:
+                throw new \Exception("Process job class not found for $this->value provider.");
         }
     }
 

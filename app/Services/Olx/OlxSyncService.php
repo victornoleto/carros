@@ -2,42 +2,34 @@
 
 namespace App\Services\Olx;
 
+use App\Enums\CarProviderEnum;
 use App\Services\CarSyncService;
-use App\Traits\CarSyncTrait;
-use GuzzleHttp\Client;
 use Symfony\Component\DomCrawler\Crawler;
 
-/**
- * Serviço para extrair os anúncios em uma página da Olx.
- *
- * @author Victor Noleto <victornoleto@sysout.com.br>
- * @since 12/07/2023 
- * @version 1.0.0
- */
 class OlxSyncService extends CarSyncService
 {
-    use CarSyncTrait;
-
-    private Client $httpClient;
-
     public function __construct()
     {
-        $this->httpClient = new Client([
+        parent::__construct([
             'base_uri' => 'https://www.olx.com.br',
-            'verify' => false,
         ]);
+    }
+
+    public function getProvider(): CarProviderEnum
+    {
+        return CarProviderEnum::OLX();
     }
 
     public function getPageResult(string $brand, string $model, int $page = 1): string
     {
-        $url = $this->getAdsPageUrl($brand, $model, $page);
+        $url = $this->getPageUrl($brand, $model, $page);
 
         $response = $this->httpClient->request('get', $url);
 
         return $response->getBody()->getContents();
     }
 
-    public function getAdResults(string $pageResult): array
+    public function getAdResults($pageResult): array
     {
         if (!$this->checkPageHasAds($pageResult)) {
             return [];
@@ -56,15 +48,6 @@ class OlxSyncService extends CarSyncService
         return $ads;
     }
 
-    public function getAdData(string $brand, string $model, string $adResult): array
-    {
-        $service = new OlxProcessService($brand, $model, $adResult);
-
-        $data = $service->process();
-
-        return $data;
-    }
-
     private function checkPageHasAds(string $contents): bool
     {
         $crawler = new Crawler($contents);
@@ -80,14 +63,14 @@ class OlxSyncService extends CarSyncService
         return $count === 0;
     }
 
-    private function getAdsPageUrl(string $brand, string $model, int $page = 1): string
+    private function getPageUrl(string $brand, string $model, int $page = 1): string
     {
-        $mutate = [
+        $brandsDict = [
             'volkswagen' => 'vw-volkswagen',
             'chevrolet' => 'gm-chevrolet',
         ];
 
-        $brand = $mutate[$brand] ?? $brand;
+        $brand = $brandsDict[$brand] ?? $brand;
 
         $url = "/autos-e-pecas/carros-vans-e-utilitarios/$brand/$model/estado-go?o=$page&sf=1";
 

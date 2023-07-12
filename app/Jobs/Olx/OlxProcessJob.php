@@ -29,6 +29,6 @@ class OlxProcessJob extends CarProcessJob
     public function onCarSaved(Car $car): void
     {
         OlxUpdateJob::dispatch($car)
-            ->onQueue('olx:update');
+            ->onQueue('olx:update'); // TODO alterar para buscar job e fila dinamicamente
     }
 }

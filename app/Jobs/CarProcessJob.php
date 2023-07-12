@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
-class CarProcessJob implements ShouldQueue
+abstract class CarProcessJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -63,14 +63,9 @@ class CarProcessJob implements ShouldQueue
         }
     }
 
-    public function getAdData(): array
-    {
-        throw new CarProcessIgnoreException('Not implemented');
-    }
+    abstract public function getAdData(): array;
 
-    public function onCarSaved(Car $car): void
-    {
-    }
+    abstract public function onCarSaved(Car $car): void;
 
     private function validate(array $data): void
     {
