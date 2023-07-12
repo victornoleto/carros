@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Jobs\ProcessWebmotorsResultJob;
+use App\Jobs\Webmotors\WebmotorsProcessCarJob;
+use App\Jobs\Webmotors\WebmotorsSyncJob;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -11,58 +13,57 @@ class WebmotorsService
 {
     private Client $httpClient;
 
+    private string $serverUrl = 'https://www.webmotors.com.br';
+
     public function __construct()
     {
         $this->httpClient = new Client([
+            'base_uri' => $this->serverUrl,
             'verify' => false
         ]);
     }
 
     public function sync(string $brand, string $model, int $page = 1)
     {
+        Log::debug("[webmotors][sync][$brand][$model] Starting page #$page sync...");
 
-        try {
+        $url = '/api/search/car';
 
-            Log::debug("[SYNC-DOWNLOAD][$brand][$model][$page] Starting sync...");
-    
-            $url = 'https://www.webmotors.com.br/api/search/car';
-    
-            $query = [
-                'url' => "https://www.webmotors.com.br/carros/estoque/$brand/$model",
-                //'url' => "https://www.webmotors.com.br/carros/go-goiania/$brand/$model?estadocidade=Goiás - Goiânia",
-                'actualPage' => $page,
-                'showCount' => true,
-            ];
-    
-            $response = $this->httpClient->get($url, [
-                'query' => $query,
-                'headers' => $this->getHeaders()
-            ]);
-    
-            $contents = $response->getBody()->getContents();
-    
-            $results = json_decode($contents, true);
+        $query = [
+            'url' => $this->serverUrl.'/carros/estoque/'.$brand.'/'.$model,
+            'actualPage' => $page,
+            'showCount' => true,
+        ];
 
-            $resultsCount = count($results['SearchResults']);
+        $response = $this->httpClient->get($url, [
+            'query' => $query,
+            'headers' => $this->getHeaders()
+        ]);
+
+        $contents = $response->getBody()->getContents();
+
+        $results = json_decode($contents, true);
+
+        $resultsCount = count($results['SearchResults']);
+    
+        Log::debug("[webmotors][sync][$brand][$model] $resultsCount cars found for page #$page");
         
-            Log::debug("[SYNC-DOWNLOAD][$brand][$model][$page] $resultsCount results found");
-            
-            foreach ($results['SearchResults'] as $result) {
-                ProcessWebmotorsResultJob::dispatch($result);
-            }
-    
-            if ($resultsCount > 0) {
-                sleep(5);
-                $this->sync($brand, $model, $page + 1);
-            }
+        foreach ($results['SearchResults'] as $result) {
 
-        } catch (\Exception $e) {
-            Log::error("[SYNC-DOWNLOAD][$brand][$model][$page] ".$e->getMessage());
+            WebmotorsProcessCarJob::dispatch($brand, $model, $result)
+                ->onQueue('webmotors:process');
+        }
+
+        if ($resultsCount > 0) {
+
+            WebmotorsSyncJob::dispatch($brand, $model, $page + 1)
+                ->onQueue('webmotors:sync')
+                ->delay(now()->addSeconds(5));
         }
     }
 
-    private function getHeaders(): array {
-
+    private function getHeaders(): array
+    {
         $headers = [
             'authority' => 'www.webmotors.com.br',
             'accept' => 'application/json, text/plain, */*',

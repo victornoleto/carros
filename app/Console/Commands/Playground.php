@@ -12,37 +12,37 @@ class Playground extends Command
     public function handle()
     {
         $list = [
-            //'bmw 320i',
             'audi a3',
             'audi a4',
-            'mitsubishi lancer',
-            'vw-volkswagen jetta',
-            'honda civic',
-            'toyota corolla',
-            'mercedes-benz c-180',
-            'honda city',
-            'vw-volkswagen virtus',
-            'vw-volkswagen polo',
-            'peugeot 208',
-            'ford mustang',
-            'nissan sentra',
+            'audi a5',
+            'fiat argo',
             'ford fusion',
-            'hyundai hb20',
-            'hyundai hb20s',
+            'ford ka',
+            'ford mustang',
             'gm-chevrolet camaro',
             'gm-chevrolet onix',
-            'vw-volkswagen gol',
-            'fiat argo',
-            'audi a5',
+            'honda city',
+            'honda civic',
+            'hyundai hb20',
+            'hyundai hb20s',
+            'mercedes-benz c-180',
+            'mitsubishi lancer',
+            'nissan 350z',
             'nissan 370z',
-            'nissan 350z'
+            'nissan sentra',
+            'peugeot 208',
+            'toyota corolla',
+            'volkswagen gol',
+            'volkswagen jetta',
+            'volkswagen polo',
+            'volkswagen virtus',
         ];
 
         foreach ($list as $item) {
 
             list($brand, $model) = explode(' ', $item);
 
-            Artisan::call('olx:sync', [
+            Artisan::call('car:sync', [
                 'brand' => $brand,
                 'model' => $model
             ]);

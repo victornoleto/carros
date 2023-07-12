@@ -2,7 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Jobs\Olx\OlxCarSyncJob;
+use App\Jobs\Olx\OlxSyncJob;
+use App\Jobs\Webmotors\WebmotorsSyncJob;
 use Illuminate\Console\Command;
 
 class CarSyncCommand extends Command
@@ -15,7 +16,10 @@ class CarSyncCommand extends Command
 
         $model = $this->argument('model');
 
-        OlxCarSyncJob::dispatch($brand, $model)
-            ->onQueue('olx:sync');
+        /* OlxSyncJob::dispatch($brand, $model)
+            ->onQueue('olx:sync'); */
+
+        WebmotorsSyncJob::dispatch($brand, $model)
+            ->onQueue('webmotors:sync');
     }
 }

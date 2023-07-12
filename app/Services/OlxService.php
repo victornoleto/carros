@@ -5,13 +5,14 @@ namespace App\Services;
 use App\Jobs\Olx\OlxProcessPageJob;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
-use Symfony\Component\DomCrawler\Crawler; 
+use Symfony\Component\DomCrawler\Crawler;
 
-class OlxService {
-
+class OlxService
+{
     private Client $httpClient;
 
-    public function __construct() {
+    public function __construct()
+    {
 
         $this->httpClient = new Client([
             'base_uri' => 'https://www.olx.com.br',
@@ -19,7 +20,9 @@ class OlxService {
         ]);
     }
     
-    public function sync(string $brand, string $model, int $page = 1) {
+    public function sync(string $brand, string $model, int $page = 1)
+    {
+        Log::debug("[olx][sync][$brand][$model] Starting page #$page sync...");
 
         $response = $this->httpClient->request(
             'GET',
@@ -30,7 +33,7 @@ class OlxService {
 
         if ($this->checkPageHasAds($contents)) {
 
-            Log::debug('[OlxService]['.$brand.']['.$model.']['.$page.'] Dispatching job...');
+            Log::debug('[olx]['.$brand.']['.$model.'] Dispatching process job: page #'.$page);
 
             OlxProcessPageJob::dispatch($brand, $model, $page, $contents)
                 ->onQueue('olx:sync');
@@ -39,7 +42,8 @@ class OlxService {
         }
     }
 
-    private function checkPageHasAds(string $contents): bool {
+    private function checkPageHasAds(string $contents): bool
+    {
 
         $crawler = new Crawler($contents);
 
@@ -54,7 +58,8 @@ class OlxService {
         return $count === 0;
     }
 
-    private function getUrl(string $brand, string $model, int $page = 1): string {
+    private function getUrl(string $brand, string $model, int $page = 1): string
+    {
 
         $mutate = [
             'volkswagen' => 'vw-volkswagen',

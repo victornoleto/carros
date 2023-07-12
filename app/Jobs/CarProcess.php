@@ -19,109 +19,112 @@ use Illuminate\Validation\Rules\Enum;
  * Processar anúncio de carro.
  *
  * @author Victor Noleto <victornoleto@sysout.com.br>
- * @since 11/07/2023 
+ * @since 11/07/2023
  * @version 1.0.0
  */
 class CarProcess implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-	use CarProcessTrait;
+    use CarProcessTrait;
 
-	public function __construct(
-		public string $brand,
-		public string $model,
-		public string $provider
-	) {
-	}
+    public function __construct(
+        public string $brand,
+        public string $model,
+        public string $provider
+    ) {
+    }
 
-	public function handle(): void {
+    public function handle(): void
+    {
 
-		try {
+        try {
 
-			$data = $this->getCarData();
+            $data = $this->getCarData();
 
-			$this->log('Car data: '.json_encode($data), 'debug');
+            //$this->log('Car data: '.json_encode($data), 'debug');
 
-			$this->validate($data);
+            $this->validate($data);
 
-			$data['active'] = true;
+            $data['active'] = true;
 
-			$car = Car::updateOrCreate(
-				[
-					'provider' => $data['provider'],
-					'provider_id' => $data['provider_id']
-				],
-				$data
-			);
+            $car = Car::updateOrCreate(
+                [
+                    'provider' => $data['provider'],
+                    'provider_id' => $data['provider_id']
+                ],
+                $data
+            );
 
-			$this->onCarUpdated($car);
+            $this->log('Car saved: #'.$car->id, 'debug');
 
-		} catch (\Exception $e) {
+            $this->onCarUpdated($car);
 
-			$shouldIgnore = $e instanceof CarProcessIgnoreException;
+        } catch (\Exception $e) {
 
-			$this->log('Failed: '.$this->getProcessIdentifier(), $shouldIgnore ? 'warning' : 'error');
+            $shouldIgnore = $e instanceof CarProcessIgnoreException;
 
-			if ($shouldIgnore) {
-				$this->log('Ignored: '.$e->getMessage(), 'warning');
-				return;
-			}
+            //$this->log('Failed: '.$this->getProcessIdentifier(), $shouldIgnore ? 'warning' : 'error');
 
-			throw $e;
-		}
-	}
+            if ($shouldIgnore) {
+                $this->log('Ignored: '.$e->getMessage(), 'warning');
+                return;
+            }
 
-	public function getProcessIdentifier(): string {
-		return '';
-	}
+            throw $e;
+        }
+    }
 
-	public function onCarUpdated(Car $car) {
+    public function getProcessIdentifier(): string
+    {
+        return '';
+    }
 
-		OlxUpdateCarJob::dispatch($car)
-			->onQueue('olx:update');
-	}
+    public function onCarUpdated(Car $car): void
+    {
+    }
 
-	public function failed(\Throwable $exception)
+    public function failed(\Throwable $exception): void
     {
         $this->log('Failed: '.$exception->getMessage(), 'error');
     }
 
-	private function validate(array $data) {
+    private function validate(array $data): void
+    {
 
-		$maxYear = date('Y') + 1;
+        $maxYear = date('Y') + 1;
 
-		$maxPrice = 500_000;
+        $maxPrice = 500_000;
 
-		$maxOdometer = 300_000;
+        $maxOdometer = 300_000;
 
-		$rules = [
-			'brand' => ['required', 'string'],
-			'model' => ['required', 'string'],
-			'version' => ['nullable', 'string'],
-			'year' => ['required', 'integer', 'min:1960', 'max:'.$maxYear],
-			'year_model' => ['nullable', 'integer', 'min:1960', 'max:'.$maxYear],
-			'price' => ['required', 'numeric', 'min:0', 'max:'.$maxPrice],
-			'odometer' => ['required', 'integer', 'min:0', 'max:'.$maxOdometer],
-			'state' => ['required', 'string', 'max:2'],
-			'city' => ['required', 'string'],
-			'provider' => ['required', 'string', Rule::in(CarProviderEnum::getValues())],
-			'provider_id' => ['required', 'string'],
-			'provider_updated_at' => ['required', 'date_format:Y-m-d H:i:s'],
-			'provider_url' => ['nullable', 'string'],
-		];
+        $rules = [
+            'brand' => ['required', 'string'],
+            'model' => ['required', 'string'],
+            'version' => ['nullable', 'string'],
+            'year' => ['required', 'integer', 'min:1960', 'max:'.$maxYear],
+            'year_model' => ['nullable', 'integer', 'min:1960', 'max:'.$maxYear],
+            'price' => ['required', 'numeric', 'min:0', 'max:'.$maxPrice],
+            'odometer' => ['required', 'integer', 'min:0', 'max:'.$maxOdometer],
+            'state' => ['required', 'string', 'max:2'],
+            'city' => ['required', 'string'],
+            'provider' => ['required', 'string', Rule::in(CarProviderEnum::getValues())],
+            'provider_id' => ['required', 'string'],
+            'provider_updated_at' => ['required', 'date_format:Y-m-d H:i:s'],
+            'provider_url' => ['nullable', 'string'],
+        ];
 
-		$validator = Validator::make($data, $rules);
+        $validator = Validator::make($data, $rules);
 
-		if ($validator->fails()) {
+        if ($validator->fails()) {
 
-			$errors = $validator->errors()->all();
+            $errors = $validator->errors()->all();
 
-			throw new CarProcessIgnoreException(implode('; ', $errors));
-		}
-	}
+            throw new CarProcessIgnoreException(implode('; ', $errors));
+        }
+    }
 
-	private function log(string $message, string $channel = 'debug'): void
+    private function log(string $message, string $channel = 'debug'): void
     {
         Log::$channel('[CarProcess]['.$this->provider.']['.$this->brand.']['.$this->model.'] '.$message);
     }

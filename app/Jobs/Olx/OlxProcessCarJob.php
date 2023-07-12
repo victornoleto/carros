@@ -8,17 +8,18 @@ use App\Jobs\CarProcess;
 use App\Jobs\CarProcessIgnoreException;
 use App\Models\Car;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\DomCrawler\Crawler;
 
 /**
  * Processar anúncio da Olx.
  *
  * @author Victor Noleto <victornoleto@sysout.com.br>
- * @since 11/07/2023 
+ * @since 11/07/2023
  * @version 1.0.0
  */
-class OlxProcessCarJob extends CarProcess implements CarProcessInterface {
-
+class OlxProcessCarJob extends CarProcess implements CarProcessInterface
+{
     public Crawler $node;
 
     public function __construct(
@@ -36,8 +37,10 @@ class OlxProcessCarJob extends CarProcess implements CarProcessInterface {
         parent::handle();
     }
 
-    public function onCarUpdated(Car $car) {
-
+    public function onCarUpdated(Car $car): void
+    {
+        OlxUpdateCarJob::dispatch($car)
+            ->onQueue('olx:update');
     }
 
     public function getProcessIdentifier(): string

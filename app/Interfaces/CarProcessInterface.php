@@ -6,25 +6,25 @@ use Carbon\Carbon;
 
 interface CarProcessInterface
 {
-	public function getVersion(): string|null;
+    public function getVersion(): string|null;
 
-	public function getYear(): int;
+    public function getYear(): int;
 
-	public function getYearModel(): int|null;
+    public function getYearModel(): int|null;
 
-	public function getPrice(): float;
+    public function getPrice(): float;
 
-	public function getOdometer(): int;
+    public function getOdometer(): int;
 
-	public function getState(): string;
+    public function getState(): string;
 
-	public function getCity(): string;
+    public function getCity(): string;
 
-	public function getProviderId(): string;
+    public function getProviderId(): string;
 
-	public function getProviderUpdatedAt(): Carbon;
+    public function getProviderUpdatedAt(): Carbon;
 
-	public function getProviderUrl(): string|null;
+    public function getProviderUrl(): string|null;
 
-	public function getProcessIdentifier(): string;
+    public function getProcessIdentifier(): string;
 }

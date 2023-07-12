@@ -2,13 +2,14 @@
 
 namespace App\Jobs\Olx;
 
-use App\Models\OlxCar;
+use App\Models\Car;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\DomCrawler\Crawler;
 
 class OlxUpdateCarJob implements ShouldQueue
@@ -20,7 +21,7 @@ class OlxUpdateCarJob implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct(public OlxCar $car)
+    public function __construct(public Car $car)
     {
     }
 
@@ -29,7 +30,7 @@ class OlxUpdateCarJob implements ShouldQueue
      */
     public function handle(): void
     {
-        $contents = Http::get($this->car->url)->body();
+        $contents = Http::get($this->car->provider_url)->body();
 
         $this->node = new Crawler($contents);
 
@@ -69,9 +70,14 @@ class OlxUpdateCarJob implements ShouldQueue
         }
 
         if (isset($characteristics['Cor'])) {
-            $updates['color'] = $characteristics['Cor'];
+            //$updates['color'] = $characteristics['Cor'];
         }
 
-        $this->car->update($updates);
+        if (count($updates) > 0) {
+
+            $this->car->update($updates);
+
+            Log::debug('[CarUpdate]['.$this->car->provider.']['.$this->car->brand.']['.$this->car->model.'] Car updated: #'.$this->car->id);
+        }
     }
 }
