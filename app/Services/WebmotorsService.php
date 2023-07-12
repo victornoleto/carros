@@ -19,6 +19,7 @@ class WebmotorsService
     {
         $this->httpClient = new Client([
             'base_uri' => $this->serverUrl,
+            //'timeout' => 10,
             'verify' => false
         ]);
     }
@@ -35,30 +36,38 @@ class WebmotorsService
             'showCount' => true,
         ];
 
-        $response = $this->httpClient->get($url, [
-            'query' => $query,
-            'headers' => $this->getHeaders()
-        ]);
+        Log::debug('webmotors stest');
 
-        $contents = $response->getBody()->getContents();
+        try {
 
-        $results = json_decode($contents, true);
-
-        $resultsCount = count($results['SearchResults']);
+            $response = $this->httpClient->get($url, [
+                'query' => $query,
+                'headers' => $this->getHeaders()
+            ]);
     
-        Log::debug("[webmotors][sync][$brand][$model] $resultsCount cars found for page #$page");
+            $contents = $response->getBody()->getContents();
+    
+            $results = json_decode($contents, true);
+    
+            $resultsCount = count($results['SearchResults']);
         
-        foreach ($results['SearchResults'] as $result) {
+            Log::debug("[webmotors][sync][$brand][$model] $resultsCount cars found for page #$page");
+            
+            foreach ($results['SearchResults'] as $result) {
+    
+                WebmotorsProcessCarJob::dispatch($brand, $model, $result)
+                    ->onQueue('webmotors:process');
+            }
+    
+            if ($resultsCount > 0) {
+    
+                /*WebmotorsSyncJob::dispatch($brand, $model, $page + 1)
+                    ->onQueue('webmotors:sync')
+                    ->delay(now()->addSeconds(5));*/
+            }
 
-            WebmotorsProcessCarJob::dispatch($brand, $model, $result)
-                ->onQueue('webmotors:process');
-        }
-
-        if ($resultsCount > 0) {
-
-            WebmotorsSyncJob::dispatch($brand, $model, $page + 1)
-                ->onQueue('webmotors:sync')
-                ->delay(now()->addSeconds(5));
+        } catch (\Exception $e) {
+            Log::debug('webmotors: '.$e->getMessage());
         }
     }
 

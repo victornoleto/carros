@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Jobs\Olx\OlxProcessPageJob;
+use App\Jobs\Olx\OlxSyncJob;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\DomCrawler\Crawler;
@@ -13,7 +14,6 @@ class OlxService
 
     public function __construct()
     {
-
         $this->httpClient = new Client([
             'base_uri' => 'https://www.olx.com.br',
             'verify' => false,
@@ -38,7 +38,8 @@ class OlxService
             OlxProcessPageJob::dispatch($brand, $model, $page, $contents)
                 ->onQueue('olx:sync');
         
-            $this->sync($brand, $model, $page + 1);
+            OlxSyncJob::dispatch($brand, $model, $page + 1)
+                ->onQueue('olx:sync');
         }
     }
 

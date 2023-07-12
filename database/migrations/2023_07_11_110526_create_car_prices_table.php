@@ -17,8 +17,8 @@ return new class extends Migration {
             $table->float('price');
             $table->float('old_price');
             $table->float('diff');
-            $table->timestamp('olx_updated_at');
             $table->timestamp('created_at');
+            $table->timestamp('provider_updated_at');
         });
     }
 

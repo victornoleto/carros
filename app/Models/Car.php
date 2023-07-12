@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class Car extends Model
 {
@@ -14,7 +13,8 @@ class Car extends Model
 
     protected $guarded = [];
 
-    public static function boot() {
+    public static function boot()
+    {
 
         parent::boot();
 
@@ -29,7 +29,7 @@ class Car extends Model
                     'price' => $car->price,
                     'old_price' => $oldPrice,
                     'diff' => $car->price - $oldPrice,
-                    'updated_at' => $car->provider_updated_at,
+                    'provider_updated_at' => $car->provider_updated_at,
                     'created_at' => now()
                 ]);
             }
@@ -37,11 +37,15 @@ class Car extends Model
         });
     }
 
-    public static function disable(string $provider): void
+    public static function disable(string $brand, string $model): void
     {
         Car::query()
-            ->where('provider', $provider)
-            ->where('active', true)
+            //->where('provider', $provider)
+            ->where([
+                'brand' => $brand,
+                'model' => $model,
+                'active' => true
+            ])
             ->update([
                 'active' => false
             ]);
