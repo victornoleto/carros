@@ -33,15 +33,15 @@ abstract class CarProcessJob implements ShouldQueue
     {
         try {
 
-            $this->log('Starting');
+            //$this->log('Starting');
 
             $data = $this->getAdData();
 
-            $this->log('Data obtained');
+            //$this->log('Data obtained');
 
             $this->validate($data);
 
-            $this->log('Data validated');
+            //$this->log('Data validated');
 
             $data['active'] = true;
 
@@ -59,15 +59,15 @@ abstract class CarProcessJob implements ShouldQueue
 
         } catch (\Exception $e) {
 
-            $shouldIgnore = $e instanceof CarProcessIgnoreException;
-
-            $identifier = is_string($this->adResult) ? $this->adResult : json_encode($this->adResult);
-
-            $this->log('Failed: '.$identifier, $shouldIgnore ? 'warning' : 'error');
-
-            if ($shouldIgnore) {
+            if ($e instanceof CarProcessIgnoreException) {
                 $this->log('Ignored: '.$e->getMessage(), 'warning');
                 return;
+
+            } else {
+
+                $identifier = is_string($this->adResult) ? $this->adResult : json_encode($this->adResult);
+
+                $this->log('Failed: '.$identifier, 'error');
             }
 
             throw $e;

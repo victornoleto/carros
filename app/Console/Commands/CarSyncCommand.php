@@ -19,6 +19,10 @@ class CarSyncCommand extends Command
 
         foreach ($providers as $provider) {
 
+            if ($provider->value == CarProviderEnum::ICARROS) {
+                return;
+            }
+
             $jobClass = $provider->getSyncJobClass();
 
             $job = app($jobClass, [
@@ -31,8 +35,6 @@ class CarSyncCommand extends Command
 
             dispatch($job)
                 ->onQueue($provider->getSyncQueueName());
-
-            return;
         }
     }
 }

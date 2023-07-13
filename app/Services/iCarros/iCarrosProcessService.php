@@ -14,14 +14,14 @@ class iCarrosProcessService extends CarProcessService
     public function __construct(
         string $brand,
         string $model,
-        public string $contents
+        public string $adResult
     ) {
         parent::__construct($brand, $model);
     }
 
-    public function getData(): array {
-
-        $this->node = new Crawler($this->contents);
+    public function getData(): array
+    {
+        $this->node = new Crawler($this->adResult);
 
         return parent::getData();
     }
@@ -121,7 +121,8 @@ class iCarrosProcessService extends CarProcessService
         return [$city, $state];
     }
 
-    private function getYearAndYearModel(): array {
+    private function getYearAndYearModel(): array
+    {
 
         $text = $this->node->filter('.info-container__car-info')
             ->children()

@@ -72,7 +72,15 @@ class OlxSyncService extends CarSyncService
 
         $brand = $brandsDict[$brand] ?? $brand;
 
-        $url = "/autos-e-pecas/carros-vans-e-utilitarios/$brand/$model/estado-go?o=$page&sf=1";
+        $url = "/autos-e-pecas/carros-vans-e-utilitarios/$brand/$model";
+
+        $state = env('STATE_FILTER');
+
+        if ($state) {
+            $url .= "/estado-$state";
+        }
+        
+        $url .= "?o=$page&sf=1";
 
         return $url;
     }

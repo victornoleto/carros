@@ -4,28 +4,37 @@ namespace App\Services;
 
 use App\Enums\CarProviderEnum;
 use GuzzleHttp\Client;
+use GuzzleHttp\RequestOptions;
 
-abstract class CarSyncService {
+abstract class CarSyncService
+{
 
-	public Client $httpClient;
+    public Client $httpClient;
 
-	public function __construct(array $httpClientOptions = [])
-	{
-		$httpClientOptions = array_merge([
-			'verify' => false,
-			'timeout' => 10
-		], $httpClientOptions);
+    public function __construct(array $httpClientOptions = [])
+    {
+        # proxies
+        $proxies = [
+            'http'  => 'http://201.95.254.137',
+            'https' => 'https://177.86.120.11',
+        ];
 
-		$this->httpClient = new Client($httpClientOptions);
-	}
+        $httpClientOptions = array_merge([
+            //RequestOptions::PROXY => $proxies,
+            RequestOptions::VERIFY => false,
+            RequestOptions::TIMEOUT => 60
+        ], $httpClientOptions);
 
-	abstract function getProvider(): CarProviderEnum;
+        $this->httpClient = new Client($httpClientOptions);
+    }
 
-	abstract function getPageResult(string $brand, string $model, int $page = 1): string|array;
+    abstract public function getProvider(): CarProviderEnum;
 
-	abstract function getAdResults($pageResult): array;
+    abstract public function getPageResult(string $brand, string $model, int $page = 1): string|array;
 
-	public function getResults(string $brand, string $models, int $page = 1): array 
+    abstract public function getAdResults($pageResult): array;
+
+    public function getResults(string $brand, string $models, int $page = 1): array
     {
         $pageResult = $this->getPageResult($brand, $models, $page);
 
@@ -43,13 +52,13 @@ abstract class CarSyncService {
 
                 $data = $this->getAdData($brand, $models, $adResult);
 
-				$row['car'] = $data;
-				
+                $row['car'] = $data;
+                
             } catch (\Exception $e) {
                 $row['error'] = $e->getMessage();
             }
 
-			$row['status'] = isset($row['car']);
+            $row['status'] = isset($row['car']);
 
             array_push($result, $row);
         }
@@ -57,17 +66,17 @@ abstract class CarSyncService {
         return $result;
     }
 
-	public function getAdData(string $brand, string $model, string $adResult): array
-    {	
-		$provider = $this->getProvider();
+    public function getAdData(string $brand, string $model, $adResult): array
+    {
+        $provider = $this->getProvider();
 
-		$serviceClass = $provider->getProcessServiceClass();
+        $serviceClass = $provider->getProcessServiceClass();
 
-		$service = app($serviceClass, [
-			'brand' => $brand,
-			'model' => $model,
-			'adResult' => $adResult
-		]);
+        $service = app($serviceClass, [
+            'brand' => $brand,
+            'model' => $model,
+            'adResult' => $adResult
+        ]);
 
         $data = $service->getData();
 

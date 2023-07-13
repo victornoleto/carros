@@ -24,9 +24,9 @@
                     <td>{{ number_format($car->price, 2, ',', '.') }}</td>
                     <td>{{ number_format($car->odometer, 0, ',', '.') }}</td>
                     <td>{{ $car->city }}/{{ $car->state }}</td>
-                    <td>{{ $car->olx_updated_at->format('d M, H:m') }}</td>
+                    <td>{{ $car->provider_updated_at->format('d M, H:m') }} <small class="opacity-50">{{ $car->provider }}</small></td>
                     <td>
-                        <a href="{{ $car->url }}" target="_blank">Abrir link</a>
+                        <a href="{{ route('provider.redirect', $car->id) }}" target="_blank">Abrir link</a>
                     </td>
                 </tr>
             @endforeach

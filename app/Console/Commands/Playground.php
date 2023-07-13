@@ -12,15 +12,26 @@ class Playground extends Command
     public function handle()
     {
         $list = [
+
+            // pickups
+            'toyota hilux',
+            'fiat toro',
+            'nissan frontier',
+            'chevrolet s10',
+            'mitsubishi l200',
+            'ford ranger',
+            'dodge ram',
+            'volkswagen amarok',
+
             'audi a3',
             'audi a4',
             //'audi a5',
-            'fiat argo',
+            //'fiat argo',
             'ford fusion',
-            'ford ka',
+            //'ford ka',
             //'ford mustang',
-            //'gm-chevrolet camaro',
-            'gm-chevrolet onix',
+            //'chevrolet camaro',
+            //'chevrolet onix',
             'honda city',
             'honda civic',
             'hyundai hb20',
@@ -32,10 +43,9 @@ class Playground extends Command
             'nissan sentra',
             'peugeot 208',
             'toyota corolla',
-            'toyota hilux',
-            'volkswagen gol',
+            //'volkswagen gol',
             'volkswagen jetta',
-            'volkswagen polo',
+            //'volkswagen polo',
             'volkswagen virtus',
             'volkswagen fox',
         ];

@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\CarProviderEnum;
+use App\Enums\StateEnum;
 use App\Models\Car;
-use App\Models\OlxCar;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redirect;
 
 class HomeController extends Controller
 {
@@ -17,12 +20,20 @@ class HomeController extends Controller
 
             $request->merge([
                 'models' => [
-                    'bmw 320i',
+                    /*'bmw 320i',
                     'audi a4',
                     'mercedes-benz c-180',
                     'toyota corolla',
                     'honda civic',
-                    'mitsubishi lancer',
+                    'mitsubishi lancer',*/
+                    'toyota hilux',
+                    'fiat toro',
+                    'nissan frontier',
+                    'chevrolet s10',
+                    'mitsubishi l200',
+                    'ford ranger',
+                    'dodge ram',
+                    'volkswagen amarok',
                 ]
             ]);
         }
@@ -39,7 +50,7 @@ class HomeController extends Controller
 
     public function cars(Request $request): JsonResponse
     {
-        $data = OlxCar::search($request);
+        $data = Car::search($request);
 
         return response()->json($data);
     }
@@ -67,7 +78,7 @@ class HomeController extends Controller
             ]);
         }
 
-        $query = OlxCar::query()
+        $query = Car::query()
             ->where('active', true)
             ->where([
                 ['year', '>=', $request->year_min],
@@ -78,50 +89,90 @@ class HomeController extends Controller
                 ['odometer', '<=', $request->odometer_max * 1000],
             ]);
         
-            $query->when($request->states, function ($query) use ($request) {
-                $query->whereIn('state', $request->states);
+        $query->when($request->states, function ($query) use ($request) {
+            $query->whereIn('state', $request->states);
+        });
+
+        $query->when($request->cities, function ($query) use ($request) {
+
+            $query->where(function ($query) use ($request) {
+
+                foreach ($request->cities as $text) {
+
+                    list($city, $state) = explode('/', $text);
+
+                    $query->orWhere(function ($q) use ($city, $state) {
+                        $q->where('city', $city)->where('state', $state);
+                    });
+                }
+
             });
+        });
 
-            $query->when($request->cities, function ($query) use ($request) {
+        $query->when($request->models, function ($query) use ($request) {
 
-                $query->where(function ($query) use ($request) {
+            $query->where(function ($query) use ($request) {
 
-                    foreach ($request->cities as $text) {
+                foreach ($request->models as $text) {
 
-                        list($city, $state) = explode('/', $text);
+                    list($brand, $model) = explode(' ', $text);
 
-                        $query->orWhere(function ($q) use ($city, $state) {
-                            $q->where('city', $city)->where('state', $state);
-                        });
-                    }
+                    $query->orWhere(function ($q) use ($brand, $model) {
+                        $q->where('brand', $brand)->where('model', $model);
+                    });
+                }
 
-                });
             });
+        });
 
-            $query->when($request->models, function ($query) use ($request) {
-
-                $query->where(function ($query) use ($request) {
-
-                    foreach ($request->models as $text) {
-
-                        list($brand, $model) = explode(' ', $text);
-
-                        $query->orWhere(function ($q) use ($brand, $model) {
-                            $q->where('brand', $brand)->where('model', $model);
-                        });
-                    }
-
-                });
-            });
-
-            $query->orderBy('year', 'desc')
-                ->orderBy('price', 'asc')
-                ->orderBy('odometer', 'asc');
+        $query->orderBy('year', 'desc')
+            ->orderBy('price', 'asc')
+            ->orderBy('odometer', 'asc');
 
         $cars = $query->get();
 
         return view('table', [
             'cars' => $cars
         ]);
+    }
+
+    public function redirect(Car $car): RedirectResponse
+    {
+        if ($car->provider == CarProviderEnum::OLX) {
+            $url = $car->provider_url;
+        
+        } elseif ($car->provider == CarProviderEnum::WEBMOTORS) {
+            $url = $this->getWebmotorsRedirectUrl($car);
+        }
+
+        return redirect()->away($url);
+    }
+
+    private function getWebmotorsRedirectUrl(Car $car)
+    {
+        $state = StateEnum::getValue($car->state);
+
+        $maxOdometer = ceil($car->odometer / Car::$round) * Car::$round;
+        $minOdometer = max($maxOdometer - Car::$round, 0);
+
+        $maxPrice = ceil($car->price / Car::$round) * Car::$round;
+        $minPrice = max($maxPrice - Car::$round, 0);
+
+        $query = [
+            'estadocidade' => "$state - $car->city",
+            'marca1' => $car->brand,
+            'modelo1' => $car->model,
+            'tipoveiculo' => 'carros',
+            'anode' => $car->year,
+            'anoate' => $car->year,
+            'kmde' => $minOdometer,
+            'kmate' => $maxOdometer,
+            'precode' => $minPrice,
+            'precoate' => $maxPrice,
+        ];
+
+        $url = "https://www.webmotors.com.br/carros/$car->state-$car->city/$car->brand/$car->model/de.$car->year/ate.$car->year";
+
+        return $url . '?' . http_build_query($query);
     }
 }

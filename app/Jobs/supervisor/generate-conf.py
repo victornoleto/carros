@@ -41,6 +41,9 @@ for item in queues:
 	user = item['user'] if 'user' in item else config['user']
 	numprocs = item['numprocs'] if 'numprocs' in item else config['numprocs']
 
+	if name == 'olx-update':
+		numprocs = 8
+
 	contents = base_file_contents.replace('$name', name)
 	contents = contents.replace('$project_path', project_path)
 	contents = contents.replace('$log_filename', log_filename)
@@ -54,8 +57,3 @@ for item in queues:
 	file = open(conf_filename, 'w')
 	file.write(contents)
 	file.close()
-
-#supervisorctl reread
-#supervisorctl update
-#supervisorctl reload
-#supervisorctl status all

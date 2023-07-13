@@ -8,8 +8,6 @@ use GuzzleHttp\Client;
 
 class WebmotorsSyncService extends CarSyncService
 {
-    private Client $httpClient;
-
     private string $serverUrl = 'https://www.webmotors.com.br';
 
     public function __construct()
@@ -24,8 +22,8 @@ class WebmotorsSyncService extends CarSyncService
         return CarProviderEnum::WEBMOTORS();
     }
 
-    public function getPageResult(string $brand, string $model, int $page = 1): array {
-
+    public function getPageResult(string $brand, string $model, int $page = 1): array
+    {
         list($url, $options) = $this->getUrlAndOptions($brand, $model, $page);
 
         $response = $this->httpClient->get($url, $options);
@@ -39,7 +37,7 @@ class WebmotorsSyncService extends CarSyncService
 
     public function getAdResults($pageResult): array
     {
-        return $pageResult['NewSearchResults'];
+        return $pageResult['NewSearchResults'] ?? [];
     }
 
     private function getUrlAndOptions(string $brand, string $model, int $page = 1): array

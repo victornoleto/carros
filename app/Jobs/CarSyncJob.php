@@ -47,13 +47,11 @@ abstract class CarSyncJob implements ShouldQueue
 
         $pageResult = $syncService->getPageResult($this->brand, $this->model, $this->page);
 
+        $adResults = $syncService->getAdResults($pageResult);
+        
         $elapsedTime = round(microtime(true) - $startTime, 2);
 
-        $this->log(sprintf('Page result received in %s seconds', $elapsedTime));
-
-        $adResults = $syncService->getAdResults($pageResult);
-
-        $this->log(sprintf('Found %s ads', count($adResults)));
+        $this->log(sprintf('%s ads found in %s seconds', count($adResults), $elapsedTime));
 
         foreach ($adResults as $adResult) {
 
@@ -70,6 +68,10 @@ abstract class CarSyncJob implements ShouldQueue
         }
 
         if (count($adResults) > 0 && $this->recursive) {
+
+            if ($provider->value != CarProviderEnum::OLX) {
+                sleep(1);
+            }
                 
             self::dispatch($this->brand, $this->model, $this->page + 1, true)
                 ->onQueue($provider->getSyncQueueName());

@@ -2,6 +2,7 @@
 
 namespace App\Enums;
 
+use App\Jobs\iCarros\iCarrosSyncJob;
 use App\Jobs\Olx\OlxProcessJob;
 use App\Jobs\Olx\OlxSyncJob;
 use App\Jobs\Webmotors\WebmotorsProcessJob;
@@ -22,8 +23,8 @@ final class CarProviderEnum extends Enum
 
     const ICARROS = 'icarros';
 
-    public function getSyncService(): CarSyncService {
-
+    public function getSyncService(): CarSyncService
+    {
         switch ($this->value) {
             
             case self::OLX:
@@ -40,7 +41,8 @@ final class CarProviderEnum extends Enum
         }
     }
 
-    public function getProcessServiceClass(): string {
+    public function getProcessServiceClass(): string
+    {
 
         switch ($this->value) {
             
@@ -58,7 +60,8 @@ final class CarProviderEnum extends Enum
         }
     }
 
-    public function getSyncJobClass(): string {
+    public function getSyncJobClass(): string
+    {
 
         switch ($this->value) {
             
@@ -76,7 +79,8 @@ final class CarProviderEnum extends Enum
         }
     }
 
-    public function getProcessJobClass(): string {
+    public function getProcessJobClass(): string
+    {
 
         switch ($this->value) {
             
@@ -94,18 +98,21 @@ final class CarProviderEnum extends Enum
         }
     }
 
-    public function getSyncQueueName(): string {
+    public function getSyncQueueName(): string
+    {
             
-        return $this->value.':sync';
+        return $this->value.'-sync';
     }
 
-    public function getProcessQueueName(): string {
+    public function getProcessQueueName(): string
+    {
             
-        return $this->value.':process';
+        return $this->value.'-process';
     }
 
-    public function getUpdateQueueName(): string {
+    public function getUpdateQueueName(): string
+    {
             
-        return $this->value.':update';
+        return $this->value.'-update';
     }
 }

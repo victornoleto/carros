@@ -1,8 +1,8 @@
 {
-	"project_path": "/home/victor/Documents/pessoal/projetos/carros",
+	"project_path": "/home/victor/dev/victor/carros",
 	"log_filename": "$project_path/storage/logs/queue-$name.log",
 	"tries": 3,
 	"timeout": 0,
 	"user": "victor",
-	"numprocs": 8
+	"numprocs": 1
 }

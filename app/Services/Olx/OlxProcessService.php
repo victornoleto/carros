@@ -15,14 +15,14 @@ class OlxProcessService extends CarProcessService
     public function __construct(
         string $brand,
         string $model,
-        public string $contents
+        public string $adResult
     ) {
         parent::__construct($brand, $model);
     }
 
-    public function getData(): array {
-
-        $this->node = new Crawler($this->contents);
+    public function getData(): array
+    {
+        $this->node = new Crawler($this->adResult);
 
         return parent::getData();
     }
@@ -183,7 +183,7 @@ class OlxProcessService extends CarProcessService
         $text = $elements->eq(0)->text();
 
         $state = env('STATE_FILTER');
-        
+
         if ($state) {
 
             $parts = explode(', ', $text);

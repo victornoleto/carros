@@ -2,7 +2,7 @@
 
 namespace App\View\Components;
 
-use App\Models\OlxCar;
+use App\Models\Car;
 use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
@@ -20,11 +20,11 @@ class Filters extends Component
     public function __construct()
     {
         $this->states = array_column(
-            DB::select('select distinct state from olx_cars order by state'),
+            DB::select('select distinct state from cars order by state'),
             'state'
         );
 
-        $this->cities = OlxCar::query()
+        $this->cities = Car::query()
             ->groupBy('state', 'city')
             ->select('state', 'city')
             ->orderBy('state')
@@ -42,7 +42,7 @@ class Filters extends Component
                 })
                 ->toArray();
 
-        $this->models = OlxCar::query()
+        $this->models = Car::query()
             ->groupBy('brand', 'model')
             ->select('brand', 'model')
             ->orderBy('brand')

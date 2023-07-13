@@ -12,4 +12,7 @@ Route::get('/cars', [HomeController::class, 'cars']);
 
 Route::get('/table', [HomeController::class, 'table']);
 
+Route::get('/redirect/{car}', [HomeController::class, 'redirect'])
+    ->name('provider.redirect');
+
 Route::get('/test/{provider}/{brand}/{model}', [TestController::class, 'index']);
