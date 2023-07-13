@@ -38,6 +38,17 @@ class Car extends Model
                     'created_at' => now()
                 ]);
             }
+            
+        });
+
+        static::saving(function (Car $car) {
+
+            foreach ($car->attributes as $key => $value) {
+
+                if (is_string($value) && $key != 'provider_id') {
+                    $car->$key = mb_strtolower($value);
+                }
+            }
 
         });
     }
@@ -56,117 +67,34 @@ class Car extends Model
             ]);
     }
 
-    public static function search(Request $request): array
+    public static function getChartsData(Request $request): array
     {
-        $query = self::query();
+        $query = self::search($request);
 
         $query->select(
             'brand',
             'model',
             'version',
             'year',
-            //'price',
-            //'odometer',
         );
 
-        $price = 'ceil(price::decimal / 10000) * 10000';
-        $odometer = 'ceil(odometer::decimal / 10000) * 10000';
+        $priceRounded = 'ceil(price::decimal / '.self::$round.') * '.self::$round;
+        $odometerRounded = 'ceil(odometer::decimal / '.self::$round.') * '.self::$round;
 
         // Para carros da mesma versão/ano manter apenas o de menor odometro
         $query->addSelect(
-            DB::raw("rank() over(partition by brand, model, version, year, ($odometer) order by ($price) asc)"),
-            DB::raw("$price as price"),
-            DB::raw("$odometer as odometer"),
+            DB::raw("rank() over(partition by brand, model, version, year, ($priceRounded) order by ($odometerRounded) asc)"),
+            DB::raw("$priceRounded as price"),
+            DB::raw("$odometerRounded as odometer"),
         );
-
-        $query->whereNotNull('odometer');
-
-        $query->where('price', '>', 0);
-
-        $query->whereRaw('active is true');
-
-        if ($request->price_min) {
-            $query->where('price', '>=', $request->price_min * 1000);
-        }
-
-        if ($request->price_max) {
-            $query->where('price', '<=', $request->price_max * 1000);
-        }
-
-        if ($request->year_min) {
-            $query->where('year', '>=', $request->year_min);
-        }
-
-        if ($request->year_max) {
-            $query->where('year', '<=', $request->year_max);
-        }
-
-        if ($request->odometer_min) {
-            $query->where('odometer', '>=', $request->odometer_min * 1000);
-        }
-
-        if ($request->states) {
-            $query->whereIn('state', $request->states);
-        }
-
-        if ($request->cities) {
-
-            $query->where(function ($query) use ($request) {
-
-                foreach ($request->cities as $text) {
-
-                    list($city, $state) = explode('/', $text);
-
-                    $query->orWhere(function ($q) use ($city, $state) {
-                        $q->where('city', $city);
-                        $q->where('state', $state);
-                    });
-                }
-
-            });
-        }
-
-        if ($request->models) {
-
-            $query->where(function ($query) use ($request) {
-
-                foreach ($request->models as $text) {
-
-                    list($brand, $model) = explode(' ', $text);
-
-                    $query->orWhere(function ($q) use ($brand, $model) {
-                        $q->where('brand', $brand);
-                        $q->where('model', $model);
-                    });
-                }
-
-            });
-        }
-
-        $query->where('odometer', '<=', $request->get('odometer_max', 300) * 1000);
-
-        if ($request->state) {
-            $query->where('state', $request->state);
-        }
 
         $query->groupBy(
             'brand',
             'model',
             'version',
             'year',
-            DB::raw($price),
-            DB::raw($odometer)
-        );
-
-        $query->orderBy('brand')
-            ->orderBy('model');
-
-        $innerSql = vsprintf(
-            str_replace('?', '%s', $query->toSql()),
-            array_map(function ($binding) {
-                $binding = addslashes($binding);
-                return is_numeric($binding) ? $binding : "'{$binding}'";
-            }, $query->getBindings())
+            DB::raw($priceRounded),
+            DB::raw($odometerRounded)
         );
 
         $sql = "
@@ -176,7 +104,7 @@ class Car extends Model
                 *,
                 rank() over(partition by brand, model, version, price, odometer order by year desc) as rank2
             from (
-                $innerSql
+                ".self::getEloquentSqlWithBindings($query)."
             ) q
             where q.rank = 1
         ) q2
@@ -185,5 +113,86 @@ class Car extends Model
         $data = DB::select($sql);
 
         return $data;
+    }
+
+    public function scopeSearch($query, Request $request): void {
+
+        $query->whereRaw('active is true');
+
+        if ($request->year_min) {
+            $query->where('year', '>=', $request->year_min);
+        }
+
+        if ($request->year_max) {
+            $query->where('year', '<=', $request->year_max);
+        }
+
+        if ($request->price_min) {
+            $query->where('price', '>=', $request->price_min * 1000);
+        }
+
+        if ($request->price_max) {
+            $query->where('price', '<=', $request->price_max * 1000);
+        }
+
+        if ($request->odometer_min) {
+            $query->where('odometer', '>=', $request->odometer_min * 1000);
+        }
+
+        if ($request->odometer_max) {
+            $query->where('odometer', '<=', $request->odometer_max * 1000);
+        }
+
+        $states = $request->get('states', []);
+        $cities = $request->get('cities', []);
+        $models = $request->get('models', []);
+
+        $query->when(count($states) > 0, function ($query) use ($states) {
+            $query->whereIn('state', $states);
+        });
+
+        $query->when(count($cities) > 0, function ($query) use ($cities) {
+
+            $query->where(function ($query) use ($cities) {
+
+                foreach ($cities as $text) {
+
+                    list($city, $state) = explode('/', $text);
+
+                    $query->orWhere(function ($q) use ($city, $state) {
+                        $q->where('city', $city)->where('state', $state);
+                    });
+                }
+
+            });
+            
+        });
+
+        $query->when(count($models) > 0, function ($query) use ($models) {
+
+            $query->where(function ($query) use ($models) {
+
+                foreach ($models as $text) {
+
+                    list($brand, $model) = explode(' ', $text);
+
+                    $query->orWhere(function ($q) use ($brand, $model) {
+                        $q->where('brand', $brand)->where('model', $model);
+                    });
+                }
+
+            });
+        });
+    }
+
+    public static function getEloquentSqlWithBindings($query): string
+    {
+        return vsprintf(
+            str_replace('?', '%s', $query->toSql()),
+            array_map(function ($binding) {
+                $binding = addslashes($binding);
+                return is_numeric($binding) ? $binding : "'{$binding}'";
+            }, $query->getBindings())
+        );
     }
 }

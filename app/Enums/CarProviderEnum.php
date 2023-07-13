@@ -2,6 +2,7 @@
 
 namespace App\Enums;
 
+use App\Jobs\iCarros\iCarrosProcessJob;
 use App\Jobs\iCarros\iCarrosSyncJob;
 use App\Jobs\Olx\OlxProcessJob;
 use App\Jobs\Olx\OlxSyncJob;
@@ -92,7 +93,7 @@ final class CarProviderEnum extends Enum
                 return WebmotorsProcessJob::class;
             
             case self::ICARROS:
-                return iCarrosSyncJob::class;
+                return iCarrosProcessJob::class;
 
             default:
                 throw new \Exception("Process job class not found for $this->value provider.");

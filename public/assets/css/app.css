@@ -1,4 +1,58 @@
 @charset "UTF-8";
+body {
+  font-family: "Inter", sans-serif;
+}
+
+th, td {
+  vertical-align: middle;
+}
+
+.form-group label {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+#chart-modal {
+  padding: 2rem;
+}
+#chart-modal .modal-dialog {
+  max-width: unset;
+  padding: 0;
+  margin: 0;
+}
+#chart-modal .modal-dialog, #chart-modal .modal-dialog .modal-content {
+  height: 100%;
+}
+
+[data-action] {
+  cursor: pointer;
+}
+
+.modal-backdrop {
+  --bs-backdrop-opacity: 0.8;
+}
+
+.table-responsive.fixed-header {
+  height: 100%;
+}
+.table-responsive.fixed-header th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background-color: #fff;
+  box-shadow: inset 0 -2px 0 var(--bs-border-color);
+  border-top: none;
+  border-bottom: none;
+}
+.table-responsive.fixed-header tbody tr:first-child td {
+  border-top: none;
+}
+
+#filters {
+  height: 100vh;
+  width: 350px;
+}
+
 .select2-container {
   font-size: 13px;
   --s2-color: #eee;
@@ -178,4 +232,8 @@
 .select2[data-selected-count="0"] + .select2-container .select2-search {
   margin-left: var(--s2-padding-x) !important;
   width: 100%;
-}/*# sourceMappingURL=select2.css.map */
+}
+
+#page-with-filters #page-inner {
+  background-color: #eee;
+}/*# sourceMappingURL=app.css.map */

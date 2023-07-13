@@ -8,7 +8,7 @@ Route::get('/test', [TestController::class, 'index']);
 
 Route::get('/', [HomeController::class, 'index']);
 
-Route::get('/cars', [HomeController::class, 'cars']);
+Route::get('/charts-data', [HomeController::class, 'chartsData']);
 
 Route::get('/table', [HomeController::class, 'table']);
 
@@ -16,3 +16,5 @@ Route::get('/redirect/{car}', [HomeController::class, 'redirect'])
     ->name('provider.redirect');
 
 Route::get('/test/{provider}/{brand}/{model}', [TestController::class, 'index']);
+
+Route::get('/tmp', [TestController::class, 'tmp']);

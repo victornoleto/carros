@@ -1,0 +1,55 @@
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+th, td {
+    vertical-align: middle;
+}
+
+.form-group label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+canvas {
+}
+
+#chart-modal {
+    padding: 2rem;
+
+    .modal-dialog {
+        max-width: unset;
+        padding: 0;
+        margin: 0;
+
+        &, .modal-content {
+            height: 100%;
+        }
+    }
+}
+
+[data-action] {
+    cursor: pointer;
+}
+
+.modal-backdrop {
+    --bs-backdrop-opacity: 0.8;
+}
+
+.table-responsive.fixed-header {
+    height: 100%;
+
+    th {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background-color: #fff;
+        box-shadow: inset 0 -2px 0 var(--bs-border-color);
+        border-top: none;
+        border-bottom: none;
+    }
+
+    tbody tr:first-child td {
+        border-top: none;
+    }
+}

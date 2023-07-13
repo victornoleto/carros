@@ -9,123 +9,50 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Redirect;
 
 class HomeController extends Controller
 {
     //
     public function index(Request $request): View
     {
-        if (!$request->has('models')) {
-
-            $request->merge([
-                'models' => [
-                    /*'bmw 320i',
-                    'audi a4',
-                    'mercedes-benz c-180',
-                    'toyota corolla',
-                    'honda civic',
-                    'mitsubishi lancer',*/
-                    'toyota hilux',
-                    'fiat toro',
-                    'nissan frontier',
-                    'chevrolet s10',
-                    'mitsubishi l200',
-                    'ford ranger',
-                    'dodge ram',
-                    'volkswagen amarok',
-                ]
-            ]);
-        }
-
-        if (!$request->has('states')) {
-
-            $request->merge([
-                'states' => ['GO']
-            ]);
-        }
-
         return view('index');
     }
 
-    public function cars(Request $request): JsonResponse
+    public function chartsData(Request $request): JsonResponse
     {
-        $data = Car::search($request);
+        $data = Car::getChartsData($request);
 
-        return response()->json($data);
+        $datasets = [];
+
+        foreach ($data as $row) {
+
+            $key = $row->brand . ' ' . $row->model;
+
+            if (!isset($datasets[$key])) {
+
+                $datasets[$key] = [
+                    'label' => $key,
+                    'data' => [],
+                ];
+            }
+
+            $datasets[$key]['data'][] = [
+                'x' => $row->odometer / 1000,
+                'y' => $row->price / 1000,
+                'r' => 10,
+                'data' => $row
+            ];
+        }
+
+        return response()->json(
+            array_values($datasets)
+        );
     }
 
     public function table(Request $request): View
     {
-        if ($request->states && !is_array($request->states)) {
-
-            $request->merge([
-                'states' => explode(',', $request->states)
-            ]);
-        }
-
-        if ($request->cities && !is_array($request->cities)) {
-
-            $request->merge([
-                'cities' => explode(',', $request->cities)
-            ]);
-        }
-
-        if ($request->models && !is_array($request->models)) {
-
-            $request->merge([
-                'models' => explode(',', $request->models)
-            ]);
-        }
-
-        $query = Car::query()
-            ->where('active', true)
-            ->where([
-                ['year', '>=', $request->year_min],
-                ['year', '<=', $request->year_max],
-                ['price', '>=', $request->price_min * 1000],
-                ['price', '<=', $request->price_max * 1000],
-                ['odometer', '>=', $request->odometer_min * 1000],
-                ['odometer', '<=', $request->odometer_max * 1000],
-            ]);
-        
-        $query->when($request->states, function ($query) use ($request) {
-            $query->whereIn('state', $request->states);
-        });
-
-        $query->when($request->cities, function ($query) use ($request) {
-
-            $query->where(function ($query) use ($request) {
-
-                foreach ($request->cities as $text) {
-
-                    list($city, $state) = explode('/', $text);
-
-                    $query->orWhere(function ($q) use ($city, $state) {
-                        $q->where('city', $city)->where('state', $state);
-                    });
-                }
-
-            });
-        });
-
-        $query->when($request->models, function ($query) use ($request) {
-
-            $query->where(function ($query) use ($request) {
-
-                foreach ($request->models as $text) {
-
-                    list($brand, $model) = explode(' ', $text);
-
-                    $query->orWhere(function ($q) use ($brand, $model) {
-                        $q->where('brand', $brand)->where('model', $model);
-                    });
-                }
-
-            });
-        });
-
-        $query->orderBy('year', 'desc')
+        $query = Car::search($request)
+            ->orderBy('year', 'desc')
             ->orderBy('price', 'asc')
             ->orderBy('odometer', 'asc');
 

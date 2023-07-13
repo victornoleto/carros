@@ -1,4 +1,5 @@
 .select2-container {
+    font-size: 13px;
     --s2-color: #eee; // cor dos textos do input
     --s2-placeholder-color: #ddd; // cor do placeholder
     --s2-min-height: 40px; // tamanho do input
@@ -7,16 +8,16 @@
     --s2-active-border-color: var(--s2-border-color); // cor da borda do input quando estiver ativo
     --s2-padding-x: 12px; // padding lateral do input
     --s2-option-padding: 8px var(--s2-padding-x); // padding das opções do dropdown
-    --s2-option-hover-bg-color: var(--bs-info); // cor do background da opção ao passar o mouse por cima
+    --s2-option-hover-bg-color: #e7e7e7; // cor do background da opção ao passar o mouse por cima
     --s2-option-hover-text-color: var(--bs-info-text-emphasis); // cor do texto da opção ao passar o mouse por cima
-    --s2-option-active-bg-color: var(--bs-dark); // cor do background da opção selecionada
-    --s2-option-active-text-color: var(--bs-light); // cor do texto da opção selecionada
+    --s2-option-active-bg-color: var(--s2-option-hover-bg-color); // cor do background da opção selecionada
+    --s2-option-active-text-color: #333; // cor do texto da opção selecionada
 
     // variáveis relacionadas com o select multiple
     --s2-choices-padding: 5px;
-    --s2-choices-bg-color: var(--bs-dark);
-    --s2-choices-border-color: var(--bs-dark);
-    --s2-choices-text-color: var(--bs-light);
+    --s2-choices-bg-color: var(--s2-option-hover-bg-color);
+    --s2-choices-border-color: var(--s2-option-hover-bg-color);
+    --s2-choices-text-color: #333;
 
     /* SELECTION */
     .selection {

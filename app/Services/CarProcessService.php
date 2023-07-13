@@ -31,13 +31,6 @@ abstract class CarProcessService {
 			'provider_url' => $this->getProviderUrl(),
 		];
 
-		foreach ($data as $key => $value) {
-
-			if (is_string($value) && $key != 'provider_id') {
-				$data[$key] = mb_strtolower($value);
-			}
-		}
-
 		return $data;
 	}
 

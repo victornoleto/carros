@@ -3,6 +3,7 @@
 namespace App\Services\iCarros;
 
 use App\Enums\CarProviderEnum;
+use App\Exceptions\CarProcessIgnoreException;
 use App\Services\CarProcessService;
 use Illuminate\Support\Carbon;
 use Symfony\Component\DomCrawler\Crawler;
@@ -114,16 +115,19 @@ class iCarrosProcessService extends CarProcessService
     private function getStateAndCity(): array
     {
         $text = $this->node->filter('.info-container__dealer-info > div > p')
-            ->text();
+            ->text(); // goiânia, go
 
-        list($city, $state) = explode(', ', $text);
+        $parts = explode(', ', $text);
 
-        return [$city, $state];
+        if (count($parts) != 2) {
+            throw new CarProcessIgnoreException('Invalid city/state: '.$text);
+        }
+
+        return $parts;
     }
 
     private function getYearAndYearModel(): array
     {
-
         $text = $this->node->filter('.info-container__car-info')
             ->children()
                 ->eq(0)->text();

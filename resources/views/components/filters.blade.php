@@ -2,74 +2,108 @@
     'buttonType' => 'button'
 ])
 
-<form id="filters" action="">
+<form id="filters" class="p-4 d-flex flex-column overflow-hidden" action="">
 
-    <div class="row">
+    <div class="position-relative flex-grow-1">
 
-        <div class="col-6">
-
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Filtro</th>
-                        <th>Valor min.</th>
-                        <th>Valor max.</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Preço <small class="opacity-50">(R$ x1000)</small></td>
-                        <td><input type="number" name="price_min" class="form-control" value="{{ Request::get('price_min') }}"></td>
-                        <td><input type="number" name="price_max" class="form-control" value="{{ Request::get('price_max', 150) }}"></td>
-                    </tr>
-                    <tr>
-                        <td>Quilometragem <small class="opacity-50">(Km x1000)</small></td>
-                        <td><input type="number" name="odometer_min" class="form-control" value="{{ Request::get('odometer_min') }}"></td>
-                        <td><input type="number" name="odometer_max" class="form-control" value="{{ Request::get('odometer_max', 120) }}"></td>
-                    </tr>
-                    <tr>
-                        <td>Ano</td>
-                        <td><input type="number" name="year_min" class="form-control" value="{{ Request::get('year_min', 2013) }}"></td>
-                        <td><input type="number" name="year_max" class="form-control" value="{{ Request::get('year_max') }}"></td>
-                    </tr>
-                </tbody>
-            </table>
-
-        </div>
-
-        <div class="col-6">
+        <div class="position-absolute top-0 left-0 w-100 h-100 overflow-x-hidden overflow-y-auto">
 
             <div class="form-group mb-3">
+        
+                <label for="">Ano</label>
+        
+                <div class="row">
+        
+                    <div class="col-6">
+                        <td><input type="number" name="year_min" class="form-control" value="{{ Request::get('year_min', 2013) }}"></td>
+                    </div>
+        
+                    <div class="col-6">
+                        <td><input type="number" name="year_max" class="form-control" value="{{ Request::get('year_max') }}"></td>
+                    </div>
+        
+                </div>
+        
+            </div>
+        
+            <div class="form-group mb-3">
+        
+                <label for="">Preço <small class="opacity-50">(R$ x1000)</small></label>
+        
+                <div class="row">
+                    <div class="col-6">
+                        <input type="number" name="price_min" class="form-control" value="{{ Request::get('price_min') }}"></td>
+                    </div>
+                    <div class="col-6">
+                        <input type="number" name="price_max" class="form-control" value="{{ Request::get('price_max', 150) }}"></td>
+                    </div>
+                </div>
+        
+            </div>
+        
+            <div class="form-group mb-3">
+        
+                <label for="">Quilometragem <small class="opacity-50">(R$ x1000)</small></label>
+        
+                <div class="row">
+                    <div class="col-6">
+                        <input type="number" name="odometer_min" class="form-control" value="{{ Request::get('odometer_min') }}">
+                    </div>
+                    <div class="col-6">
+                        <input type="number" name="odometer_max" class="form-control" value="{{ Request::get('odometer_max', 120) }}">
+                    </div>
+                </div>
+        
+            </div>
+        
+            <div class="form-group mb-3">
+
                 <label for="">Estado</label>
+
                 <select name="states[]" id="" class="form-select select2" multiple>
+
                     @foreach ($states as $state)
                         <option value="{{ $state }}" {{ in_array($state, Request::get('states') ?? []) ? 'selected' : '' }}>{{ $state }}</option>
                     @endforeach
-                </select>
-            </div>
 
+                </select>
+
+            </div>
+        
             <div class="form-group mb-3">
+
                 <label for="">Cidades</label>
+
                 <select name="cities[]" class="form-select select2" multiple>
+
                     @foreach ($cities as $city)
                         <option value="{{ $city['text'] }}" {{ in_array($city['name'], Request::get('cities') ?? []) ? 'selected' : '' }}>{{ $city['text'] }}</option>
                     @endforeach
-                </select>
-            </div>
 
+                </select>
+
+            </div>
+        
             <div class="form-group">
+
                 <label for="">Modelos</label>
+
                 <select name="models[]" class="form-select select2" multiple>
+
                     @foreach ($models as $model)
                         <option value="{{ $model['text'] }}" {{ in_array($model['text'], (Request::get('models') ?? [])) ? 'selected' : '' }}>{{ $model['text'] }}</option>
                     @endforeach
+
                 </select>
+                
             </div>
 
         </div>
-
+        
     </div>
-
-    <button id="update-btn" type="{{ $buttonType }}" class="btn btn-dark fw-bold mb-3">Atualizar</button>
+    
+    <div class="footer">
+        <button id="update-btn" type="{{ $buttonType }}" class="btn btn-dark w-100 fw-bold">Atualizar</button>
+    </div>
 
 </form>

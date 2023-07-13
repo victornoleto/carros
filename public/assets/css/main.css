@@ -1,16 +1,48 @@
 body {
-    font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
 }
 
 th, td {
-    vertical-align: middle;
+  vertical-align: middle;
 }
 
 .form-group label {
-    font-weight: 600;
-    margin-bottom: 0.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
 }
 
-canvas {
-    width: 100%;
+#chart-modal {
+  padding: 2rem;
 }
+#chart-modal .modal-dialog {
+  max-width: unset;
+  padding: 0;
+  margin: 0;
+}
+#chart-modal .modal-dialog, #chart-modal .modal-dialog .modal-content {
+  height: 100%;
+}
+
+[data-action] {
+  cursor: pointer;
+}
+
+.modal-backdrop {
+  --bs-backdrop-opacity: 0.8;
+}
+
+.table-responsive.fixed-header {
+  height: 100%;
+}
+.table-responsive.fixed-header th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background-color: #fff;
+  box-shadow: inset 0 -2px 0 var(--bs-border-color);
+  border-top: none;
+  border-bottom: none;
+}
+.table-responsive.fixed-header tbody tr:first-child td {
+  border-top: none;
+}/*# sourceMappingURL=main.css.map */

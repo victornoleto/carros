@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Car;
+use App\Services\iCarros\iCarrosProcessService;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Storage;
 
 class TestController extends Controller
 {
@@ -33,4 +36,22 @@ class TestController extends Controller
             abort($e->getCode(), $e->getMessage());
         }
     }
+
+    public function tmp() {
+
+        $car = Car::where('state', 'GO')->first();
+
+        $car->state = 'go';
+
+        $car->save();
+
+        /* $adContents = Storage::get('test.txt');
+
+        $service = new iCarrosProcessService('honda', 'civic', $adContents);
+
+        $data = $service->getData();
+
+        dd($data); */
+    }
 }
+

@@ -23,7 +23,7 @@ function loadSelect2($select, customOptions) {
 
     var defaultOptions = {
         language: 'pt-BR',
-        placeholder: placeholder,
+        placeholder: '',
         allowClear: !$select.attr('multiple') && $select.data('allow-clear') == 1,
     };
 
@@ -74,7 +74,7 @@ function loadSelect2($select, customOptions) {
     onSelectOrUnselect();
 
     $select.one('select2:open', function(e) {
-        $('input.select2-search__field').prop('placeholder', 'Pesquise dentre as opções disponíveis...');
+        //$('input.select2-search__field').prop('placeholder', 'Pesquise dentre as opções disponíveis...');
     });
 }
 

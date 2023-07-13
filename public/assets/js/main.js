@@ -2,55 +2,59 @@ $(function() {
     
     var $chartsRow = $('#charts-row');
 
+    var $group = $chartsRow.find('> div:first')
+        .detach();
+
+    var $modal = $('#chart-modal');
+
     const colors = new Gradient()
         //.setColorGradient('#318CE7', '#fd5c63')
         .setColorGradient('#000000', '#eeeeee')
         .setMidpoint(13)
         .getColors();
 
-    function onChartClick(event, elements) {
-
-        var filters = getFilters();
-
-        filters.year_max = null;
-        filters.year_min = null;
-
-        for (let row of elements) {
-
-            var data = row.element.$context.raw.data;
-    
-            filters.models = [data.brand + ' ' + data.model];
-
-            filters.price_max = data.price / 1000;
-            filters.price_min = Math.max((data.price / 1000) - 10, 0);
-
-            filters.odometer_max = data.odometer / 1000;
-            filters.odometer_min = Math.max((data.odometer / 1000) - 10, 0);
-
-            if (!filters.year_max || data.year > filters.year_max) {
-                filters.year_max = data.year;
-            }
-
-            if (!filters.year_min || data.year < filters.year_min) {
-                filters.year_min = data.year;
-            }
-        }
+    function redirectToTable(filters) {
 
         var query = new URLSearchParams(filters).toString();
-
+    
         window.open('table?' + query, '_blank').focus();
     }
-
-    function createChart(title, dataset) {
-
-        var $div = $('<div class="col-12 col-md-6 col-lg-4 mt-4"></div>');
-
-        var $canvas = $('<canvas></canvas>');
-
-        $div.append($canvas);
-
-        $chartsRow.append($div);
         
+    function createChart($canvas, dataset) {
+            
+        var onChartClick = function(event, elements) {
+
+            if (!elements || elements.length == 0) return;
+        
+            var filters = getFilters();
+    
+            filters.year_max = null;
+            filters.year_min = null;
+    
+            for (let row of elements) {
+    
+                var data = row.element.$context.raw.data;
+        
+                filters['models[]'] = [data.brand + ' ' + data.model];
+    
+                filters.price_max = data.price / 1000;
+                filters.price_min = Math.max((data.price / 1000) - 10, 0);
+    
+                filters.odometer_max = data.odometer / 1000;
+                filters.odometer_min = Math.max((data.odometer / 1000) - 10, 0);
+    
+                if (!filters.year_max || data.year > filters.year_max) {
+                    filters.year_max = data.year;
+                }
+    
+                if (!filters.year_min || data.year < filters.year_min) {
+                    filters.year_min = data.year;
+                }
+            }
+
+            redirectToTable(filters);
+        }
+
         const data = {
             datasets: [dataset]
         };
@@ -60,12 +64,12 @@ $(function() {
             data: data,
             options: {
                 responsive: true,
-                maintainAspectRatio: true,
+                maintainAspectRatio: false,
                 plugins: {
-                    title: {
+                    /* title: {
                         display: true,
                         text: title
-                    },
+                    }, */
                     legend: {
                         display: false
                     },
@@ -76,16 +80,11 @@ $(function() {
                     }
                 },
                 scales: {
-                    xAxis: {
+                    x: {
                         reverse: true,
                         title: {
                             display: true,
                             text: 'Quilometragem (Km x1000)',
-                        },
-                        ticks: {
-                            /* callback: function(value, index, values) {
-                                return value / 1000;
-                            } */
                         }
                     },
                     y: {
@@ -100,19 +99,71 @@ $(function() {
                             steps: 50,
                             stepValue: 5,
                             max: 1000
-                            /* callback: function(value, index, values) {
-                                return value / 1000;
-                            } */
                         }
                     },
                 },
-                onClick: onChartClick
+                onClick: onChartClick,
             }
         };
 
         var ctx = $canvas[0].getContext('2d');
 
-        new Chart(ctx, config);
+        var chart = new Chart(ctx, config);
+
+        return chart;
+    }
+
+    function createGroup(dataset) {
+
+        var $groupClone = $group.clone()
+            .removeClass('d-none');
+
+        $groupClone.find('[data-attribute="brand-model"]')
+            .text(dataset.label);
+
+        var $canvas = $groupClone.find('canvas');
+
+        $chartsRow.append($groupClone);
+
+        createChart($canvas, dataset);
+
+        $groupClone.on('click', '[data-action="expand"]', function() {
+
+            $modal.off('shown.bs.modal');
+
+            $modal.on('shown.bs.modal', function(e) {
+                
+                var $canvas = $('<canvas></canvas>');
+
+                $modal.find('.modal-title').text(dataset.label);
+
+                $modal.find('.modal-body').append($canvas);
+
+                createChart($canvas, dataset);
+
+            });
+
+            var modal = $modal.modal('show');
+
+            $modal.one('click', '[data-action="close"]', function() {
+                modal.modal('hide');
+            });
+
+            $modal.one('hidden.bs.modal', function() {
+                $modal.find('.modal-body').empty();
+            });
+
+        });
+
+        $groupClone.on('click', '[data-action="table"]', function() {
+
+            var filters = getFilters();
+
+            filters['models[]'] = [dataset.label];
+
+            redirectToTable(filters);
+
+        });
     }
 
     function getYearColor(year) {
@@ -160,11 +211,11 @@ $(function() {
 
             var $select = $(this);
 
-            var name = $select.attr('name').replace('[]', '');
+            var name = $select.attr('name');
 
             var value = $select.val();
 
-            if (value) {
+            if (Array.isArray(value) ? value.length > 0 : value) {
                 filters[name] = value;
             }
 
@@ -173,71 +224,28 @@ $(function() {
         return filters;
     }
 
-    function createCarsDatasets(list) {
-
-        var datasets = {};
-        var index = 0;
-
-        list.forEach(function(car) {
-
-            var keyParts = [
-                car.brand,
-                car.model,
-                //car.version
-            ];
-
-            var key = keyParts.join(' ');
-
-            if (!datasets[key]) {
-
-                datasets[key] = {
-                    label: key,
-                    data: [],
-                    backgroundColor: colors[index] + '0d',
-                    borderWidth: 0,
-                    hoverRadius: 1,
-                    pointBackgroundColor: function(context) {
-
-                        var year = context.raw.data.year;
-
-                        var color = getYearColor(year);
-
-                        return color;
-                    }
-                };
-
-                index++;
-            }
-
-            datasets[key].data.push({
-                x: car.odometer / 1000,
-                y: car.price / 1000,
-                r: 10,
-                data: car
-            });
-
-        });
-
-        return datasets;
-    }
-
     function loadCars() {
 
         var filters = getFilters();
 
         $.ajax({
             method: 'get',
-            url: 'cars',
+            url: 'charts-data',
             data: filters,
-            success: function(list) {
+            success: function(datasets) {
 
-                var datasets = createCarsDatasets(list);
+                datasets.forEach(function(dataset) {
 
-                $chartsRow.empty();
+                    dataset.borderWidth = 0;
+                    dataset.hoverRadius = 1;
 
-                for (var title in datasets) {
-                    createChart(title, datasets[title]);
-                }
+                    dataset.pointBackgroundColor = function(context) {
+                        return getYearColor(context.raw.data.year);
+                    }
+
+                    createGroup(dataset);
+
+                });
             },
             error: function(error) {
                 console.error(error);
