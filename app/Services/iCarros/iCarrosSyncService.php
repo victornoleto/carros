@@ -65,7 +65,15 @@ class iCarrosSyncService extends CarSyncService {
 
 	private function getPageUrl(string $brand, string $model, int $page = 1): string
 	{
-		$url = self::$serverUrl."/comprar/$brand/$model?pag=$page";
+		$url = self::$serverUrl.'/comprar/';
+        
+        $state = env('STATE_FILTER');
+
+        if ($state) {
+            $url .= $state.'/';
+        }
+        
+        $url .= "$brand/$model?pag=$page";
 
 		return $url;
 	}

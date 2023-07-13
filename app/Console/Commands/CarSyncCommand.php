@@ -17,11 +17,15 @@ class CarSyncCommand extends Command
 
         $providers = CarProviderEnum::getInstances();
 
+        /* $providers = [
+            CarProviderEnum::ICARROS(),
+        ]; */
+
         foreach ($providers as $provider) {
 
-            if ($provider->value == CarProviderEnum::ICARROS) {
+            /* if ($provider->value == CarProviderEnum::ICARROS) {
                 return;
-            }
+            } */
 
             $jobClass = $provider->getSyncJobClass();
 

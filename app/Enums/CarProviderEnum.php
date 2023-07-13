@@ -8,6 +8,7 @@ use App\Jobs\Olx\OlxSyncJob;
 use App\Jobs\Webmotors\WebmotorsProcessJob;
 use App\Jobs\Webmotors\WebmotorsSyncJob;
 use App\Services\CarSyncService;
+use App\Services\iCarros\iCarrosProcessService;
 use App\Services\iCarros\iCarrosSyncService;
 use App\Services\Olx\OlxProcessService;
 use App\Services\Olx\OlxSyncService;
@@ -53,7 +54,7 @@ final class CarProviderEnum extends Enum
                 return WebmotorsProcessService::class;
             
             case self::ICARROS:
-                return iCarrosSyncService::class;
+                return iCarrosProcessService::class;
 
             default:
                 throw new \Exception("Process service class not found for $this->value provider.");
