@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\CarProviderEnum;
+use App\Jobs\Olx\OlxUpdateJob;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -39,6 +41,16 @@ class Car extends Model
                 ]);
             }
             
+        });
+
+        static::creating(function (Car $car) {
+
+            if (!$car->version && $car->provider == CarProviderEnum::OLX) {
+                
+                OlxUpdateJob::dispatch($car)
+                    ->onQueue(CarProviderEnum::OLX()->getUpdateQueueName());
+            }
+
         });
 
         static::saving(function (Car $car) {
@@ -115,7 +127,8 @@ class Car extends Model
         return $data;
     }
 
-    public function scopeSearch($query, Request $request): void {
+    public function scopeSearch($query, Request $request): void
+    {
 
         $query->whereRaw('active is true');
 
@@ -177,7 +190,7 @@ class Car extends Model
                     list($brand, $model) = explode(' ', $text);
 
                     $query->orWhere(function ($q) use ($brand, $model) {
-                        $q->where('brand', $brand)->where('model', $model);
+                        $q->where('brand', $brand)->whereRaw("model = '$model'");
                     });
                 }
 

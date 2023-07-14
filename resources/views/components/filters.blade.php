@@ -35,7 +35,7 @@
                         <input type="number" name="price_min" class="form-control" value="{{ Request::get('price_min') }}"></td>
                     </div>
                     <div class="col-6">
-                        <input type="number" name="price_max" class="form-control" value="{{ Request::get('price_max', 150) }}"></td>
+                        <input type="number" name="price_max" class="form-control" value="{{ Request::get('price_max', 100) }}"></td>
                     </div>
                 </div>
         
@@ -102,8 +102,11 @@
         
     </div>
     
-    <div class="footer">
-        <button id="update-btn" type="{{ $buttonType }}" class="btn btn-dark w-100 fw-bold">Atualizar</button>
+    <div class="footer d-flex flex-column gap-2">
+
+        <button id="clear-filters-button" type="button" class="btn btn-light w-100 fw-bold">Limpar</button>
+
+        <button id="filters-button" type="{{ $buttonType }}" class="btn btn-dark w-100 fw-bold">Atualizar</button>
     </div>
 
 </form>

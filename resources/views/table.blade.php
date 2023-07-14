@@ -1,4 +1,4 @@
-<x-layout>
+<x-layout id="page-table">
 
     <x-page-with-filters>
 
@@ -7,8 +7,7 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Marca</th>
-                        <th>Modelo</th>
+                        <th>Marca/Modelo</th>
                         <th>Ano</th>
                         <th>Preço (R$)</th>
                         <th>Quilometragem (Km)</th>
@@ -20,8 +19,7 @@
                 <tbody>
                     @foreach ($cars as $car)
                         <tr>
-                            <td>{{ mb_strtoupper($car->brand) }}</td>
-                            <td>{{ mb_strtoupper($car->version ?? $car->model) }}</td>
+                            <td>{{ mb_strtoupper($car->brand) }} {{ mb_strtoupper($car->model) }} <small class="opacity-50">{{ mb_strtoupper($car->version ?? '-') }}</small></td>
                             <td>{{ $car->year }}</td>
                             <td>{{ number_format($car->price, 2, ',', '.') }}</td>
                             <td>{{ number_format($car->odometer, 0, ',', '.') }}</td>

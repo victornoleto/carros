@@ -57,21 +57,17 @@ class OlxUpdateJob implements ShouldQueue
             }
         }
 
-        $updates = [];
-
         if (isset($characteristics['Modelo'])) {
-            $updates['version'] = $characteristics['Modelo'];
-        }
 
-        if (isset($characteristics['Cor'])) {
-            //$updates['color'] = $characteristics['Cor'];
-        }
+            $version = $characteristics['Modelo'];
 
-        if (count($updates) > 0) {
+            $version = str_replace("$this->car->brand $this->car->model ", "", $version);
 
-            $this->car->update($updates);
-
-            Log::debug('[CAR-UPDATE-JOB]['.$this->car->provider.']['.$this->car->brand.']['.$this->car->model.'] Car updated: #'.$this->car->id);
+            $this->car->update([
+                'version' => $version
+            ]);
+    
+            Log::debug('[car-update]['.$this->car->provider.']['.$this->car->brand.']['.$this->car->model.'] Version updated: '.$version);
         }
     }
 }

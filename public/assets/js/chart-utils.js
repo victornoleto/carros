@@ -17,8 +17,11 @@ const getOrCreateTooltip = (chart) => {
 		table.style.margin = '0px';
 		
 		tooltipEl.appendChild(table);
+
 		chart.canvas.parentNode.appendChild(tooltipEl);
 	}
+
+	tooltipEl.style['z-index'] = 100;
 	
 	return tooltipEl;
 };
@@ -125,3 +128,40 @@ const externalTooltipHandler = (context) => {
 	tooltipEl.style.font = tooltip.options.bodyFont.string;
 	tooltipEl.style.padding = tooltip.options.padding + 'px ' + tooltip.options.padding + 'px';
 };
+
+function getColorByYear(year, palleteIndex) {
+
+	let index = 2023 - year;
+
+	return getPointColor(index, palleteIndex);
+}
+
+function getPointColor(index, palleteIndex) {
+
+	palleteIndex = palleteIndex || 0;
+
+	var palletes = [
+		['#000000', '#eeeeee'], // black
+		['#000000', '#eeeeee'], // blue
+		['#000000', '#eeeeee'], // red
+		['#000000', '#eeeeee'], // green
+		['#000000', '#eeeeee'], // orange
+	]
+
+	const colors = new Gradient()
+		.setColorGradient(palletes[palleteIndex][0], palletes[palleteIndex][1])
+		.setMidpoint(13)
+		.getColors();
+
+	if (index < 0) {
+		index = 0;
+	}
+
+	if (index > (colors.length - 1)) {
+		index = colors.length - 1;
+	}
+
+	var color = colors[index];
+
+	return color;
+}

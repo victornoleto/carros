@@ -13,9 +13,23 @@ use Illuminate\Http\Request;
 class HomeController extends Controller
 {
     //
-    public function index(Request $request): View
+    public function dashboard(Request $request): View
     {
-        return view('index');
+
+        $request->merge([
+            'models' => [
+                'peugeot 208',
+                'fiat argo',
+                'ford ka',
+                'chevrolet onix',
+                'volkswagen polo',
+                'volkswagen gol',
+                'volkswagen fox',
+                'hyundai hb20',
+            ]
+        ]);
+
+        return view('dashboard');
     }
 
     public function chartsData(Request $request): JsonResponse
@@ -75,7 +89,7 @@ class HomeController extends Controller
         return redirect()->away($url);
     }
 
-    private function getWebmotorsRedirectUrl(Car $car)
+    private function getWebmotorsRedirectUrl(Car $car): string
     {
         $state = StateEnum::getValue($car->state);
 
@@ -91,7 +105,7 @@ class HomeController extends Controller
             'modelo1' => $car->model,
             'tipoveiculo' => 'carros',
             'anode' => $car->year,
-            'anoate' => $car->year,
+            'anoate' => $car->year + 1,
             'kmde' => $minOdometer,
             'kmate' => $maxOdometer,
             'precode' => $minPrice,

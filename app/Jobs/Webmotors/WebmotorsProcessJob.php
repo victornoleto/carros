@@ -12,8 +12,4 @@ class WebmotorsProcessJob extends CarProcessJob
     {
         return CarProviderEnum::WEBMOTORS();
     }
-
-    public function onCarSaved(Car $car): void
-    {
-    }
 }

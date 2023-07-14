@@ -23,9 +23,9 @@ class CarSyncCommand extends Command
 
         foreach ($providers as $provider) {
 
-            /* if ($provider->value == CarProviderEnum::ICARROS) {
+            if ($provider->value == CarProviderEnum::ICARROS) {
                 return;
-            } */
+            }
 
             $jobClass = $provider->getSyncJobClass();
 

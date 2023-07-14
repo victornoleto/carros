@@ -12,9 +12,4 @@ class iCarrosProcessJob extends CarProcessJob
     {
         return CarProviderEnum::ICARROS();
     }
-
-    public function onCarSaved(Car $car): void
-    {
-        
-    }
 }

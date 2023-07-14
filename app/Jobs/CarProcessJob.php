@@ -27,8 +27,6 @@ abstract class CarProcessJob implements ShouldQueue
 
     abstract public function getProvider(): CarProviderEnum;
 
-    abstract public function onCarSaved(Car $car): void;
-
     public function handle(): void
     {
         try {
@@ -53,9 +51,12 @@ abstract class CarProcessJob implements ShouldQueue
                 $data
             );
 
-            $this->log('Car saved: #'.$car->id);
+            if ($car->wasRecentlyCreated) {
+                $this->log('Car created: #'.$car->id);
 
-            $this->onCarSaved($car);
+            } elseif ($car->isDirty()) {
+                $this->log('Car updated: #'.$car->id.' - '.json_encode($car->getChanges()));
+            }
 
         } catch (\Exception $e) {
 

@@ -1,4 +1,4 @@
-<x-layout>
+<x-layout id="page-dashboard">
 
     <x-page-with-filters>
 
@@ -55,8 +55,6 @@
     </x-page-with-filters>
 
     <script src="{{ asset('assets/js/color-gradient.js') }}"></script>
-    <script src="{{ asset('assets/js/tooltip.js') }}"></script>
-    <script src="{{ asset('assets/js/main.js') }}"></script>
-    <script src="{{ asset('assets/js/select2.js') }}"></script>
+    <script src="{{ asset('assets/js/chart-utils.js') }}"></script>
 
 </x-layout>

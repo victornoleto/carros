@@ -41,8 +41,8 @@ for item in queues:
 	user = item['user'] if 'user' in item else config['user']
 	numprocs = item['numprocs'] if 'numprocs' in item else config['numprocs']
 
-	""" if name == 'olx-update':
-		numprocs = 8 """
+	if name == 'olx-update':
+		numprocs = 8
 
 	contents = base_file_contents.replace('$name', name)
 	contents = contents.replace('$project_path', project_path)

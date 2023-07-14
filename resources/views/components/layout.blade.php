@@ -1,3 +1,7 @@
+@props([
+    'id' => ''
+])
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -13,7 +17,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link href="{{ asset('assets/css/app.css') }}" rel="stylesheet">
-    <link href="{{ asset('assets/css/sellect.css') }}" rel="stylesheet">
 </head>
 
 <body class="bg-gray">
@@ -24,11 +27,14 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js" integrity="sha512-2ImtlRlf2VVmiGZsjm9bEyhjGW4dU7B6TNwh/hx/iSByxNENtj3WVE6o/9Lj4TJeVXPi4bnOIMXFIJJAeufa0A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-    <main class="">
+    <main id="{{ $id }}" class="">
 
        {{ $slot }}
 
     </main>
+
+    <script src="{{ asset('assets/js/select2.js') }}"></script>
+    <script src="{{ asset('assets/js/main.js') }}"></script>
 
 </body>
 </html>

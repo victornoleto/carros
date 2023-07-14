@@ -37,21 +37,22 @@ class TestController extends Controller
         }
     }
 
-    public function tmp() {
+    public function tmp()
+    {
+        $car = Car::where('state', 'go')->first();
 
-        $car = Car::where('state', 'GO')->first();
+        $car = Car::updateOrCreate(
+            [
+                "provider" => "olx",
+                "provider_id" => "920597292"
+            ],
+            [
+                "brand" => "JEEP"
+            ]
+        );
 
-        $car->state = 'go';
+        dd($car->getChanges());
 
-        $car->save();
-
-        /* $adContents = Storage::get('test.txt');
-
-        $service = new iCarrosProcessService('honda', 'civic', $adContents);
-
-        $data = $service->getData();
-
-        dd($data); */
+        dd($car->wasChanged(), $car->all());
     }
 }
-
