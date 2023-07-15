@@ -6,6 +6,8 @@ use App\Jobs\iCarros\iCarrosProcessJob;
 use App\Jobs\iCarros\iCarrosSyncJob;
 use App\Jobs\Olx\OlxProcessJob;
 use App\Jobs\Olx\OlxSyncJob;
+use App\Jobs\UsadosBr\UsadosBrProcessJob;
+use App\Jobs\UsadosBr\UsadosBrSyncJob;
 use App\Jobs\Webmotors\WebmotorsProcessJob;
 use App\Jobs\Webmotors\WebmotorsSyncJob;
 use App\Services\CarSyncService;
@@ -13,6 +15,8 @@ use App\Services\iCarros\iCarrosProcessService;
 use App\Services\iCarros\iCarrosSyncService;
 use App\Services\Olx\OlxProcessService;
 use App\Services\Olx\OlxSyncService;
+use App\Services\UsadosBr\UsadosBrProcessService;
+use App\Services\UsadosBr\UsadosBrSyncService;
 use App\Services\Webmotors\WebmotorsProcessService;
 use App\Services\Webmotors\WebmotorsSyncService;
 use BenSampo\Enum\Enum;
@@ -24,6 +28,8 @@ final class CarProviderEnum extends Enum
     const WEBMOTORS = 'webmotors';
 
     const ICARROS = 'icarros';
+
+    const USADOSBR = 'usadosbr';
 
     public function getSyncService(): CarSyncService
     {
@@ -38,6 +44,9 @@ final class CarProviderEnum extends Enum
             case self::ICARROS:
                 return new iCarrosSyncService();
 
+            case self::USADOSBR:
+                return new UsadosBrSyncService();
+
             default:
                 throw new \Exception("Sync service not found for $this->value provider.");
         }
@@ -45,7 +54,6 @@ final class CarProviderEnum extends Enum
 
     public function getProcessServiceClass(): string
     {
-
         switch ($this->value) {
             
             case self::OLX:
@@ -57,6 +65,9 @@ final class CarProviderEnum extends Enum
             case self::ICARROS:
                 return iCarrosProcessService::class;
 
+            case self::USADOSBR:
+                return UsadosBrProcessService::class;
+
             default:
                 throw new \Exception("Process service class not found for $this->value provider.");
         }
@@ -64,7 +75,6 @@ final class CarProviderEnum extends Enum
 
     public function getSyncJobClass(): string
     {
-
         switch ($this->value) {
             
             case self::OLX:
@@ -76,6 +86,9 @@ final class CarProviderEnum extends Enum
             case self::ICARROS:
                 return iCarrosSyncJob::class;
 
+            case self::USADOSBR:
+                return UsadosBrSyncJob::class;
+
             default:
                 throw new \Exception("Sync job class not found for $this->value provider.");
         }
@@ -83,7 +96,6 @@ final class CarProviderEnum extends Enum
 
     public function getProcessJobClass(): string
     {
-
         switch ($this->value) {
             
             case self::OLX:
@@ -95,6 +107,9 @@ final class CarProviderEnum extends Enum
             case self::ICARROS:
                 return iCarrosProcessJob::class;
 
+            case self::USADOSBR:
+                return UsadosBrProcessJob::class;
+
             default:
                 throw new \Exception("Process job class not found for $this->value provider.");
         }
@@ -102,19 +117,16 @@ final class CarProviderEnum extends Enum
 
     public function getSyncQueueName(): string
     {
-            
         return $this->value.'-sync';
     }
 
     public function getProcessQueueName(): string
     {
-            
         return $this->value.'-process';
     }
 
     public function getUpdateQueueName(): string
     {
-            
         return $this->value.'-update';
     }
 }

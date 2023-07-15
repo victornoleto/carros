@@ -16,9 +16,6 @@ abstract class CarProcessService
 
     public function getData(): array
     {
-
-        dd($this);
-
         $data = [
             'brand' => $this->brand,
             'model' => $this->model,

@@ -21,14 +21,16 @@ class TestController extends Controller
             $service = $enum->getSyncService();
             
             $results = $service->getResults($brand, $model, $page);
+
+            dd($results);
     
-            $results = array_filter($results, function ($result) {
+            /* $results = array_filter($results, function ($result) {
                 return $result['status'];
             });
     
             $results = array_map(function ($result) {
                 return $result['car'];
-            }, $results);
+            }, $results); */
     
             return response($results);
 
@@ -50,9 +52,5 @@ class TestController extends Controller
                 "brand" => "JEEP"
             ]
         );
-
-        dd($car->getChanges());
-
-        dd($car->wasChanged(), $car->all());
     }
 }

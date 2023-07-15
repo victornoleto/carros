@@ -7,7 +7,7 @@ use Illuminate\Console\Command;
 
 class CarSyncCommand extends Command
 {
-    protected $signature = 'car:sync {brand} {model}';
+    protected $signature = 'car:sync {brand} {model} {provider?}';
 
     public function handle()
     {
@@ -15,22 +15,24 @@ class CarSyncCommand extends Command
 
         $model = $this->argument('model');
 
+        $provider = $this->argument('provider');
+
         $providers = CarProviderEnum::getInstances();
 
-        /* $providers = [
-            CarProviderEnum::ICARROS(),
-        ]; */
+        foreach ($providers as $providerInstance) {
 
-        foreach ($providers as $provider) {
-
-            if ($provider->value == CarProviderEnum::ICARROS) {
+            if ($providerInstance->value == CarProviderEnum::ICARROS) {
                 return;
             }
 
-            $jobClass = $provider->getSyncJobClass();
+            if ($provider && $providerInstance->value != $provider) {
+                continue;
+            }
+
+            $jobClass = $providerInstance->getSyncJobClass();
 
             $job = app($jobClass, [
-                'provider' => $provider->value,
+                'provider' => $providerInstance->value,
                 'brand' => $brand,
                 'model' => $model,
                 'page' => 1,
@@ -38,7 +40,7 @@ class CarSyncCommand extends Command
             ]);
 
             dispatch($job)
-                ->onQueue($provider->getSyncQueueName());
+                ->onQueue($providerInstance->getSyncQueueName());
         }
     }
 }

@@ -60,7 +60,6 @@ abstract class CarSyncJob implements ShouldQueue
     
     private function process(): void
     {
-        
         $this->log('Starting');
     
         $provider = $this->getProvider();

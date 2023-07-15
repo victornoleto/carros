@@ -8,7 +8,7 @@ base_file = open('base.conf', 'r')
 base_file_contents = base_file.read()
 
 providers = [
-	'olx', 'webmotors', 'icarros'
+	'olx', 'webmotors', 'icarros', 'usadosbr'
 ]
 
 methods = [
