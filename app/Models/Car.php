@@ -129,30 +129,30 @@ class Car extends Model
 
     public function scopeSearch($query, Request $request): void
     {
+        $query->whereRaw('active is true')
+            ->whereRaw('banned is false');
 
-        $query->whereRaw('active is true');
-
-        if ($request->year_min) {
+        if (is_numeric($request->year_min)) {
             $query->where('year', '>=', $request->year_min);
         }
 
-        if ($request->year_max) {
+        if (is_numeric($request->year_max)) {
             $query->where('year', '<=', $request->year_max);
         }
 
-        if ($request->price_min) {
+        if (is_numeric($request->price_min)) {
             $query->where('price', '>=', $request->price_min * 1000);
         }
 
-        if ($request->price_max) {
+        if (is_numeric($request->price_max)) {
             $query->where('price', '<=', $request->price_max * 1000);
         }
 
-        if ($request->odometer_min) {
+        if (is_numeric($request->odometer_min)) {
             $query->where('odometer', '>=', $request->odometer_min * 1000);
         }
 
-        if ($request->odometer_max) {
+        if (is_numeric($request->odometer_max)) {
             $query->where('odometer', '<=', $request->odometer_max * 1000);
         }
 

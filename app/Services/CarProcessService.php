@@ -5,34 +5,38 @@ namespace App\Services;
 use App\Enums\CarProviderEnum;
 use Illuminate\Support\Carbon;
 
-abstract class CarProcessService {
+abstract class CarProcessService
+{
 
-	public function __construct(
-		public string $brand,
-		public string $model
-	) {
-	}
+    public function __construct(
+        public string $brand,
+        public string $model
+    ) {
+    }
 
-	public function getData(): array {
+    public function getData(): array
+    {
 
-		$data = [
-			'brand' => $this->brand,
-			'model' => $this->model,
-			'version' => $this->getVersion(),
-			'year' => $this->getYear(),
-			'year_model' => $this->getYearModel(),
-			'price' => $this->getPrice(),
-			'odometer' => $this->getOdometer(),
-			'state' => $this->getState(),
-			'city' => $this->getCity(),
-			'provider' => $this->getProvider()->value,
-			'provider_id' => $this->getProviderId(),
-			'provider_updated_at' => $this->getProviderUpdatedAt()->toDateTimeString(),
-			'provider_url' => $this->getProviderUrl(),
-		];
+        dd($this);
 
-		return $data;
-	}
+        $data = [
+            'brand' => $this->brand,
+            'model' => $this->model,
+            'version' => $this->getVersion(),
+            'year' => $this->getYear(),
+            'year_model' => $this->getYearModel(),
+            'price' => $this->getPrice(),
+            'odometer' => $this->getOdometer(),
+            'state' => $this->getState(),
+            'city' => $this->getCity(),
+            'provider' => $this->getProvider()->value,
+            'provider_id' => $this->getProviderId(),
+            'provider_updated_at' => $this->getProviderUpdatedAt()->toDateTimeString(),
+            'provider_url' => $this->getProviderUrl(),
+        ];
+
+        return $data;
+    }
 
     abstract public function getProvider(): CarProviderEnum;
 

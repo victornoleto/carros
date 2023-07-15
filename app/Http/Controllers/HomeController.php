@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Enums\CarProviderEnum;
-use App\Enums\StateEnum;
 use App\Models\Car;
+use App\Services\Webmotors\WebmotorsSyncService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -15,17 +15,23 @@ class HomeController extends Controller
     //
     public function dashboard(Request $request): View
     {
-
         $request->merge([
             'models' => [
-                'peugeot 208',
+                /* 'peugeot 208',
                 'fiat argo',
                 'ford ka',
                 'chevrolet onix',
                 'volkswagen polo',
                 'volkswagen gol',
                 'volkswagen fox',
-                'hyundai hb20',
+                'hyundai hb20', */
+                'mercedes-benz c-180',
+                'bmw 320i',
+                'audi a4',
+                'volkswagen jetta',
+                'mitsubishi lancer',
+                'honda civic',
+                'toyota corolla',
             ]
         ]);
 
@@ -80,40 +86,27 @@ class HomeController extends Controller
     public function redirect(Car $car): RedirectResponse
     {
         if ($car->provider == CarProviderEnum::OLX) {
-            $url = $car->provider_url;
+            return redirect()->away($car->provider_url);
         
         } elseif ($car->provider == CarProviderEnum::WEBMOTORS) {
-            $url = $this->getWebmotorsRedirectUrl($car);
+            return $this->redirectToWebmotorsAdPage($car);
         }
-
-        return redirect()->away($url);
     }
 
-    private function getWebmotorsRedirectUrl(Car $car): string
+    private function redirectToWebmotorsAdPage(Car $car): RedirectResponse
     {
-        $state = StateEnum::getValue($car->state);
-
-        $maxOdometer = ceil($car->odometer / Car::$round) * Car::$round;
-        $minOdometer = max($maxOdometer - Car::$round, 0);
-
-        $maxPrice = ceil($car->price / Car::$round) * Car::$round;
-        $minPrice = max($maxPrice - Car::$round, 0);
-
-        $query = [
-            'estadocidade' => "$state - $car->city",
-            'marca1' => $car->brand,
-            'modelo1' => $car->model,
-            'tipoveiculo' => 'carros',
-            'anode' => $car->year,
-            'anoate' => $car->year + 1,
-            'kmde' => $minOdometer,
-            'kmate' => $maxOdometer,
-            'precode' => $minPrice,
-            'precoate' => $maxPrice,
+        $parts = [
+            'https://www.webmotors.com.br/comprar',
+            $car->brand,
+            $car->model,
+            slugify($car->version),
+            '4-portas',
+            $car->year.'-'.$car->year_model,
+            $car->provider_id
         ];
 
-        $url = "https://www.webmotors.com.br/carros/$car->state-$car->city/$car->brand/$car->model/de.$car->year/ate.$car->year";
+        $url = implode('/', $parts);
 
-        return $url . '?' . http_build_query($query);
+        return redirect()->away($url, 302, WebmotorsSyncService::getHeaders());
     }
 }

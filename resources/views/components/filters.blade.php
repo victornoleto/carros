@@ -15,7 +15,7 @@
                 <div class="row">
         
                     <div class="col-6">
-                        <td><input type="number" name="year_min" class="form-control" value="{{ Request::get('year_min', 2013) }}"></td>
+                        <td><input type="number" name="year_min" class="form-control" value="{{ Request::get('year_min') }}"></td>
                     </div>
         
                     <div class="col-6">
@@ -35,7 +35,7 @@
                         <input type="number" name="price_min" class="form-control" value="{{ Request::get('price_min') }}"></td>
                     </div>
                     <div class="col-6">
-                        <input type="number" name="price_max" class="form-control" value="{{ Request::get('price_max', 100) }}"></td>
+                        <input type="number" name="price_max" class="form-control" value="{{ Request::get('price_max') }}"></td>
                     </div>
                 </div>
         
@@ -50,7 +50,7 @@
                         <input type="number" name="odometer_min" class="form-control" value="{{ Request::get('odometer_min') }}">
                     </div>
                     <div class="col-6">
-                        <input type="number" name="odometer_max" class="form-control" value="{{ Request::get('odometer_max', 120) }}">
+                        <input type="number" name="odometer_max" class="form-control" value="{{ Request::get('odometer_max') }}">
                     </div>
                 </div>
         

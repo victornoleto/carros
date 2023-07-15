@@ -27,6 +27,7 @@ return new class extends Migration {
             $table->timestamp('provider_updated_at');
             $table->string('provider_url')->nullable();
             $table->boolean('active')->default(true);
+            $table->boolean('banned')->default(false);
             $table->timestamps();
         });
     }

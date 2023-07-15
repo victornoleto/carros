@@ -239,15 +239,13 @@ $(function() {
             })
         }
     
-        loadCars();
+        //loadCars();
 
         $page.on('click', '#filters-button', function() {
             loadCars();
         });
 
     });
-
-    console.log($('#page-table'));
 
     $('#page-table').each(function() {
 
