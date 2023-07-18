@@ -15,7 +15,8 @@ class UsadosBrProcessService extends CarProcessService
     public function __construct(
         string $brand,
         string $model,
-        public string $adResult
+        public string $adResult,
+        public string|null $state
     ) {
         parent::__construct($brand, $model);
     }
@@ -119,7 +120,8 @@ class UsadosBrProcessService extends CarProcessService
         return $parts;
     }
 
-    private function getYearAndYearModel(): array {
+    private function getYearAndYearModel(): array
+    {
 
         $text = $this->node->filter('.css-ljtdvh')
             ->children()

@@ -37,11 +37,15 @@ $(function() {
 
             var value = $select.val();
 
+            //name = name.replace('[]', '');
+
             if (Array.isArray(value) ? value.length > 0 : value) {
-                filters[name] = value;
+                filters[name] = encodeURIComponent(JSON.stringify(value));;
             }
 
         });
+
+        console.log(filters);
 
         return filters;
     };
@@ -60,6 +64,8 @@ $(function() {
         function redirectToTable(filters) {
     
             var query = new URLSearchParams(filters).toString();
+
+            console.log(filters, query);
         
             window.open('table?' + query, '_blank').focus();
         }
@@ -239,7 +245,7 @@ $(function() {
             })
         }
     
-        //loadCars();
+        loadCars();
 
         $page.on('click', '#filters-button', function() {
             loadCars();

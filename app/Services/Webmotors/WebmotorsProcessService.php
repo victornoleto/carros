@@ -11,7 +11,8 @@ class WebmotorsProcessService extends CarProcessService
     public function __construct(
         string $brand,
         string $model,
-        public array $adResult
+        public array $adResult,
+        public string|null $state
     ) {
         parent::__construct($brand, $model);
     }

@@ -15,14 +15,14 @@ class OlxProcessService extends CarProcessService
     public function __construct(
         string $brand,
         string $model,
-        public string $adResult
+        public string $data,
     ) {
         parent::__construct($brand, $model);
     }
 
     public function getData(): array
     {
-        $this->node = new Crawler($this->adResult);
+        $this->node = new Crawler($this->data);
 
         return parent::getData();
     }
@@ -34,7 +34,9 @@ class OlxProcessService extends CarProcessService
 
     public function getVersion(): string|null
     {
-        return null;
+        $text = $this->node->filter('h2.title')->text();
+
+        return $text;
     }
 
     public function getYear(): int
@@ -162,7 +164,6 @@ class OlxProcessService extends CarProcessService
 
     private function getUrlAndId(): array
     {
-
         $url = $this->node->filter('[data-ds-component="DS-NewAdCard-Link"]')->attr('href');
 
         $parts = explode('-', $url);
@@ -181,18 +182,8 @@ class OlxProcessService extends CarProcessService
                         ->filter('p');
 
         $text = $elements->eq(0)->text();
-
-        $state = env('STATE_FILTER');
-
-        if ($state) {
-
-            $parts = explode(', ', $text);
-
-            $parts[1] = $state;
-            
-        } else {
-            $parts = explode(' - ', $text);
-        }
+        
+        $parts = explode(' - ', $text);
 
         return $parts;
     }

@@ -14,7 +14,7 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')->hourly();
 
-        $schedule->command('car:full-sync')->daily();
+        //$schedule->command('car:full-sync')->daily();
 
         $schedule->command('horizon:snapshot')->everyFiveMinutes();
     }

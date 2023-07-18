@@ -6,9 +6,10 @@ use App\Enums\CarProviderEnum;
 use App\Services\CarSyncService;
 use Symfony\Component\DomCrawler\Crawler;
 
-class iCarrosSyncService extends CarSyncService {
+class iCarrosSyncService extends CarSyncService
+{
 
-	public static $serverUrl = 'https://www.icarros.com.br';
+    public static $serverUrl = 'https://www.icarros.com.br';
 
     public function __construct()
     {
@@ -20,9 +21,9 @@ class iCarrosSyncService extends CarSyncService {
         return CarProviderEnum::ICARROS();
     }
 
-    public function getPageResult(string $brand, string $model, int $page = 1): string
+    public function getPageResult(string $brand, string $model, int $page = 1, string|null $state = null): string
     {
-        $url = $this->getPageUrl($brand, $model, $page);
+        $url = $this->getPageUrl($brand, $model, $page, $state);
 
         $response = $this->httpClient->request('get', $url);
 
@@ -43,9 +44,9 @@ class iCarrosSyncService extends CarSyncService {
 
         foreach ($nodes as $node) {
 
-			$html = $node->ownerDocument->saveHTML($node);
+            $html = $node->ownerDocument->saveHTML($node);
 
-			$html = str_replace("\n", "", $html);
+            $html = str_replace("\n", "", $html);
 
             array_push($ads, $html);
         }
@@ -58,23 +59,21 @@ class iCarrosSyncService extends CarSyncService {
         $crawler = new Crawler($contents);
 
         $offers = $crawler->filter('#cards-grid')
-			->children();
+            ->children();
 
         return $offers->count() > 0;
     }
 
-	private function getPageUrl(string $brand, string $model, int $page = 1): string
-	{
-		$url = self::$serverUrl.'/comprar/';
+    private function getPageUrl(string $brand, string $model, int $page = 1, string|null $state = null): string
+    {
+        $url = self::$serverUrl.'/comprar/';
         
-        $state = env('STATE_FILTER');
-
         if ($state) {
             $url .= $state.'/';
         }
         
         $url .= "$brand/$model?pag=$page";
 
-		return $url;
-	}
+        return $url;
+    }
 }

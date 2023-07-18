@@ -5,6 +5,8 @@ namespace App\Jobs;
 use App\Enums\CarProviderEnum;
 use App\Exceptions\CarProcessIgnoreException;
 use App\Models\Car;
+use App\Services\CarProcessService;
+use App\Traits\CarProviderTrait;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -18,28 +20,33 @@ abstract class CarProcessJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    use CarProviderTrait;
+
+    public CarProviderEnum $provider;
+
+    public CarProcessService $processService;
+
     public function __construct(
         public string $brand,
         public string $model,
-        public $adResult,
+        public string|array $data,
     ) {
-    }
+        $this->setProviderByClassName();
 
-    abstract public function getProvider(): CarProviderEnum;
+        $this->processService = $this->provider->getProcessService([
+            'brand' => $this->brand,
+            'model' => $this->model,
+            'data' => $data
+        ]);
+    }
 
     public function handle(): void
     {
         try {
 
-            //$this->log('Starting');
-
-            $data = $this->getAdData();
-
-            //$this->log('Data obtained');
+            $data = $this->processService->getData();
 
             $this->validate($data);
-
-            //$this->log('Data validated');
 
             $data['active'] = true;
 
@@ -61,29 +68,20 @@ abstract class CarProcessJob implements ShouldQueue
         } catch (\Exception $e) {
 
             if ($e instanceof CarProcessIgnoreException) {
+                
                 $this->log('Ignored: '.$e->getMessage(), 'warning');
+
                 return;
 
             } else {
 
-                $identifier = is_string($this->adResult) ? $this->adResult : json_encode($this->adResult);
+                $identifier = is_string($this->data) ? $this->data : json_encode($this->data);
 
                 $this->log('Failed: '.$identifier, 'error');
             }
 
             throw $e;
         }
-    }
-
-    private function getAdData(): array
-    {
-        $provider = $this->getProvider();
-
-        $service = $provider->getSyncService();
-
-        $data = $service->getAdData($this->brand, $this->model, $this->adResult);
-
-        return $data;
     }
 
     private function validate(array $data): void
@@ -122,11 +120,9 @@ abstract class CarProcessJob implements ShouldQueue
 
     private function log(string $message, string $channel = 'debug'): void
     {
-        $provider = $this->getProvider();
-
         $logMessage = sprintf(
             '[car-process][%s][%s][%s] %s',
-            $provider->value,
+            $this->provider->value,
             $this->brand,
             $this->model,
             $message

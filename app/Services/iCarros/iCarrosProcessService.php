@@ -15,7 +15,8 @@ class iCarrosProcessService extends CarProcessService
     public function __construct(
         string $brand,
         string $model,
-        public string $adResult
+        public string $adResult,
+        public string|null $state
     ) {
         parent::__construct($brand, $model);
     }

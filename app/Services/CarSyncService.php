@@ -3,83 +3,95 @@
 namespace App\Services;
 
 use App\Enums\CarProviderEnum;
+use App\Traits\CarProviderTrait;
 use GuzzleHttp\Client;
 use GuzzleHttp\RequestOptions;
 
 abstract class CarSyncService
 {
+    use CarProviderTrait;
 
     public Client $httpClient;
 
-    public function __construct(array $httpClientOptions = [])
-    {
-        # proxies
-        $proxies = [
-            'http'  => 'http://201.95.254.137',
-            'https' => 'https://177.86.120.11',
-        ];
+    public CarProviderEnum $provider;
 
-        $httpClientOptions = array_merge([
-            //RequestOptions::PROXY => $proxies,
+    public function __construct()
+    {
+        $this->httpClient = new Client([
             RequestOptions::VERIFY => false,
             RequestOptions::TIMEOUT => 60
-        ], $httpClientOptions);
+        ]);
 
-        $this->httpClient = new Client($httpClientOptions);
+        $this->setProviderByClassName();
     }
 
-    abstract public function getProvider(): CarProviderEnum;
+    abstract public function getPageRequestUrl(string $brand, string $model, int $page = 1): string;
 
-    abstract public function getPageResult(string $brand, string $model, int $page = 1): string|array;
+    abstract public function getPageUnprocessedResults(string|array $pageResults): array;
 
-    abstract public function getAdResults($pageResult): array;
-
-    public function getResults(string $brand, string $models, int $page = 1): array
+    public function getPageEntireResults(string $brand, string $model, int $page = 1): string|array
     {
-        $pageResult = $this->getPageResult($brand, $models, $page);
+        $url = $this->getPageRequestUrl($brand, $model, $page);
 
-        $adResults = $this->getAdResults($pageResult);
+        $fullUrl = $this->provider->getUrl() . $url;
 
-        $result = [];
+        $options = $this->getPageRequestOptions($brand, $model, $page);
 
-        foreach ($adResults as $adResult) {
+        $response = $this->httpClient->request('get', $fullUrl, $options);
 
+        $contents = $response->getBody()->getContents();
+
+        return $contents;
+    }
+
+    public function getPageRequestOptions(): array
+    {
+        return [
+            'headers' => $this->getPageRequestHeaders()
+        ];
+    }
+
+    public function getPageRequestHeaders(): array
+    {
+        return [
+            'authority' => str_replace('https://', '', $this->provider->getUrl()),
+            'accept' => 'application/json, text/plain, */*',
+            'user-agent' => 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+        ];
+    }
+
+    public function getPageResults(string $brand, string $model, int $page = 1): array
+    {
+        $pageResults = $this->getPageEntireResults($brand, $model, $page);
+
+        $unprocessedResults = $this->getPageUnprocessedResults($pageResults);
+        
+        $results = [];
+        
+        foreach ($unprocessedResults as $unprocessedResult) {
+            
             $row = [
-                'data' => $adResult
+                'unprocessedResult' => $unprocessedResult
             ];
-
+            
             try {
-
-                $data = $this->getAdData($brand, $models, $adResult);
-
-                $row['car'] = $data;
+                
+                $processService = $this->provider->getProcessService([
+                    'brand' => $brand,
+                    'model' => $model,
+                    'data' => $unprocessedResult,
+                ]);
+        
+                $row['result'] = $processService->getData();
                 
             } catch (\Exception $e) {
+
                 $row['error'] = $e->getMessage();
             }
 
-            $row['status'] = isset($row['car']);
-
-            array_push($result, $row);
+            array_push($results, $row);
         }
 
-        return $result;
-    }
-
-    public function getAdData(string $brand, string $model, $adResult): array
-    {
-        $provider = $this->getProvider();
-
-        $serviceClass = $provider->getProcessServiceClass();
-
-        $service = app($serviceClass, [
-            'brand' => $brand,
-            'model' => $model,
-            'adResult' => $adResult
-        ]);
-
-        $data = $service->getData();
-
-        return $data;
+        return $results;
     }
 }

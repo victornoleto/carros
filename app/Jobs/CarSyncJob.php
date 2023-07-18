@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Enums\CarProviderEnum;
 use App\Models\Car;
+use App\Traits\CarProviderTrait;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -15,19 +16,24 @@ abstract class CarSyncJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    use CarProviderTrait;
+
     public $tries = 3;
 
     public $timeout = 120;
+
+    public $backoff = 60;
+
+    public CarProviderEnum $provider;
 
     public function __construct(
         public string $brand,
         public string $model,
         public int $page = 1,
-        public bool $recursive = false
+        public bool $recursive = false,
     ) {
+        $this->setProviderByClassName();
     }
-
-    abstract public function getProvider(): CarProviderEnum;
 
     public function handle(): void
     {
@@ -37,87 +43,75 @@ abstract class CarSyncJob implements ShouldQueue
 
         } catch (\Throwable $e) {
 
-            $this->log($e->getMessage(), 'error');
-
-            if ($this->attempts() < $this->tries) {
-
-                $backoff = $this->backoff()[$this->attempts() - 1] ?? 60;
-
-                $this->log(sprintf('Retrying in %s seconds', $backoff), 'error');
-                    
-                $this->release($backoff);
-            
-            } else {
-                $this->log('Max attempts reached', 'error');
-            }
+            $this->handleError($e);
         }
-    }
-    
-    public function backoff(): array
-    {
-        return [60, 180, 300];
     }
     
     private function process(): void
     {
-        $this->log('Starting');
-    
-        $provider = $this->getProvider();
+        //$this->log('Starting');
     
         if ($this->page == 1 && $this->recursive) {
-            Car::disable($provider->value, $this->brand, $this->model);
+            Car::disable($this->provider->value, $this->brand, $this->model);
         }
     
-        $syncService = $provider->getSyncService();
+        $syncService = $this->provider->getSyncService();
     
         $startTime = microtime(true);
     
-        $pageResult = $syncService->getPageResult($this->brand, $this->model, $this->page);
+        $pageResults = $syncService->getPageEntireResults($this->brand, $this->model, $this->page);
     
-        $adResults = $syncService->getAdResults($pageResult);
+        $unprocessedResults = $syncService->getPageUnprocessedResults($pageResults);
         
         $elapsedTime = round(microtime(true) - $startTime, 2);
     
-        $this->log(sprintf('%s ads found in %s seconds', count($adResults), $elapsedTime));
+        $this->log(sprintf('%s ads found in %s seconds', count($unprocessedResults), $elapsedTime));
     
-        foreach ($adResults as $adResult) {
+        foreach ($unprocessedResults as $unprocessedResult) {
     
-            $processJobClass = $provider->getProcessJobClass();
-    
-            $processJob = app($processJobClass, [
+            $processJob = $this->provider->getProcessJob([
                 'brand' => $this->brand,
                 'model' => $this->model,
-                'adResult' => $adResult,
+                'data' => $unprocessedResult,
             ]);
     
-            dispatch($processJob)
-                ->onQueue($provider->getProcessQueueName());
+            dispatch($processJob)->onQueue('cars:process');
         }
     
-        if (count($adResults) > 0 && $this->recursive) {
+        if (count($unprocessedResults) > 0 && $this->recursive) {
     
-            if ($provider->value != CarProviderEnum::OLX) {
+            if ($this->provider->value != CarProviderEnum::OLX) {
                 sleep(1);
             }
                 
-            self::dispatch($this->brand, $this->model, $this->page + 1, true)
-                ->onQueue($provider->getSyncQueueName());
+            self::dispatch($this->brand, $this->model, $this->page + 1, true)->onQueue('cars:sync');
+        }
+    }
+
+    private function handleError(\Throwable $e): void
+    {
+        $this->log($e->getMessage(), 'error');
+
+        if ($this->attempts() < $this->tries) {
+
+            $this->log(sprintf('Retrying in %s seconds', $this->backoff), 'error');
+                
+            $this->release($this->backoff);
+        
+        } else {
+            $this->log('Max attempts reached', 'error');
         }
     }
 
     private function log(string $message, string $channel = 'debug'): void
     {
-        $provider = $this->getProvider();
-
-        $attempt = $this->attempts();
-
         $logMessage = sprintf(
-            '[car-sync][%s][%s][%s][%s][%s] %s',
-            $provider->value,
-            $attempt,
+            '[car-sync][%s][%s/%s][%s][%s] %s',
+            $this->provider->value,
+            $this->page,
+            $this->attempts(),
             $this->brand,
             $this->model,
-            $this->page,
             $message
         );
 

@@ -25,13 +25,16 @@ class HomeController extends Controller
                 'volkswagen gol',
                 'volkswagen fox',
                 'hyundai hb20', */
-                'mercedes-benz c-180',
-                'bmw 320i',
-                'audi a4',
-                'volkswagen jetta',
+                //'mercedes-benz c-180',
+                //'bmw 320i',
+                //'audi a4',
+                //'volkswagen jetta',
                 'mitsubishi lancer',
-                'honda civic',
-                'toyota corolla',
+                //'honda civic',
+                //'toyota corolla',
+            ],
+            'states' => [
+                'df', 'go'
             ]
         ]);
 

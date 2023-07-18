@@ -1,8 +1,16 @@
 {
 	"project_path": "/home/victor/dev/victor/carros",
-	"log_filename": "$project_path/storage/logs/queue-$name.log",
+	"log_filename": "$project_path/storage/logs/queue-worker.log",
 	"tries": 3,
 	"timeout": 0,
 	"user": "victor",
-	"numprocs": 1
+	"numprocs": 1,
+	"queues": [
+		{
+			"name": "cars-process"
+		},
+		{
+			"name": "cars-sync"
+		}
+	]
 }

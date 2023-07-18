@@ -43,16 +43,6 @@ class Car extends Model
             
         });
 
-        static::creating(function (Car $car) {
-
-            if (!$car->version && $car->provider == CarProviderEnum::OLX) {
-                
-                OlxUpdateJob::dispatch($car)
-                    ->onQueue(CarProviderEnum::OLX()->getUpdateQueueName());
-            }
-
-        });
-
         static::saving(function (Car $car) {
 
             foreach ($car->attributes as $key => $value) {

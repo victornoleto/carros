@@ -2,6 +2,8 @@
 
 namespace App\Enums;
 
+use App\Jobs\CarProcessJob;
+use App\Jobs\CarSyncJob;
 use App\Jobs\iCarros\iCarrosProcessJob;
 use App\Jobs\iCarros\iCarrosSyncJob;
 use App\Jobs\Olx\OlxProcessJob;
@@ -10,6 +12,7 @@ use App\Jobs\UsadosBr\UsadosBrProcessJob;
 use App\Jobs\UsadosBr\UsadosBrSyncJob;
 use App\Jobs\Webmotors\WebmotorsProcessJob;
 use App\Jobs\Webmotors\WebmotorsSyncJob;
+use App\Services\CarProcessService;
 use App\Services\CarSyncService;
 use App\Services\iCarros\iCarrosProcessService;
 use App\Services\iCarros\iCarrosSyncService;
@@ -31,102 +34,86 @@ final class CarProviderEnum extends Enum
 
     const USADOSBR = 'usadosbr';
 
-    public function getSyncService(): CarSyncService
+    protected $config = [
+        self::OLX => [
+            'url' => 'https://www.olx.com.br',
+            'syncService' => OlxSyncService::class,
+            'syncJob' => OlxSyncJob::class,
+            'processService' => OlxProcessService::class,
+            'processJob' => OlxProcessJob::class,
+        ],
+        self::WEBMOTORS => [
+            'url' => 'https://www.webmotors.com.br',
+            'syncService' => WebmotorsSyncService::class,
+            'syncJob' => WebmotorsSyncJob::class,
+            'processService' => WebmotorsProcessService::class,
+            'processJob' => WebmotorsProcessJob::class,
+        ],
+        self::ICARROS => [
+            'url' => 'https://www.icarros.com.br',
+            'syncService' => iCarrosSyncService::class,
+            'syncJob' => iCarrosSyncJob::class,
+            'processService' => iCarrosProcessService::class,
+            'processJob' => iCarrosProcessJob::class,
+        ],
+        self::USADOSBR => [
+            'url' => 'https://www.usadosbr.com',
+            'syncService' => UsadosBrSyncService::class,
+            'syncJob' => UsadosBrSyncJob::class,
+            'processService' => UsadosBrProcessService::class,
+            'processJob' => UsadosBrProcessJob::class,
+        ],
+    ];
+
+    public function getSyncService(array $parameters = []): CarSyncService
+    {
+        return $this->getClass('syncService', $parameters);
+    }
+
+    public function getSyncJob(array $parameters = []): CarSyncJob
+    {
+        return $this->getClass('syncJob', $parameters);
+    }
+
+    public function getProcessService(array $parameters = []): CarProcessService
+    {
+        return $this->getClass('processService', $parameters);
+    }
+
+    public function getProcessJob(array $parameters = []): CarProcessJob
+    {
+        return $this->getClass('processJob', $parameters);
+    }
+
+    public function getUrl(): string
     {
         switch ($this->value) {
             
             case self::OLX:
-                return new OlxSyncService();
+                return 'https://www.olx.com.br';
             
             case self::WEBMOTORS:
-                return new WebmotorsSyncService();
+                return 'https://www.webmotors.com.br';
             
             case self::ICARROS:
-                return new iCarrosSyncService();
+                return 'https://www.icarros.com.br';
 
             case self::USADOSBR:
-                return new UsadosBrSyncService();
+                return 'https://www.usadosbr.com';
 
             default:
-                throw new \Exception("Sync service not found for $this->value provider.");
+                throw new \Exception("Server url not found for $this->value provider.");
         }
     }
 
-    public function getProcessServiceClass(): string
+    private function getClass(string $key, array $parameters = []): mixed
     {
-        switch ($this->value) {
-            
-            case self::OLX:
-                return OlxProcessService::class;
-            
-            case self::WEBMOTORS:
-                return WebmotorsProcessService::class;
-            
-            case self::ICARROS:
-                return iCarrosProcessService::class;
+        $config = $this->config[$this->value];
 
-            case self::USADOSBR:
-                return UsadosBrProcessService::class;
+        $className = $config[$key];
 
-            default:
-                throw new \Exception("Process service class not found for $this->value provider.");
-        }
-    }
+        $class = app($className, $parameters);
 
-    public function getSyncJobClass(): string
-    {
-        switch ($this->value) {
-            
-            case self::OLX:
-                return OlxSyncJob::class;
-            
-            case self::WEBMOTORS:
-                return WebmotorsSyncJob::class;
-            
-            case self::ICARROS:
-                return iCarrosSyncJob::class;
-
-            case self::USADOSBR:
-                return UsadosBrSyncJob::class;
-
-            default:
-                throw new \Exception("Sync job class not found for $this->value provider.");
-        }
-    }
-
-    public function getProcessJobClass(): string
-    {
-        switch ($this->value) {
-            
-            case self::OLX:
-                return OlxProcessJob::class;
-            
-            case self::WEBMOTORS:
-                return WebmotorsProcessJob::class;
-            
-            case self::ICARROS:
-                return iCarrosProcessJob::class;
-
-            case self::USADOSBR:
-                return UsadosBrProcessJob::class;
-
-            default:
-                throw new \Exception("Process job class not found for $this->value provider.");
-        }
-    }
-
-    public function getSyncQueueName(): string
-    {
-        return $this->value.'-sync';
-    }
-
-    public function getProcessQueueName(): string
-    {
-        return $this->value.'-process';
-    }
-
-    public function getUpdateQueueName(): string
-    {
-        return $this->value.'-update';
+        return $class;
     }
 }
