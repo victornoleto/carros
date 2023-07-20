@@ -2,7 +2,6 @@
 
 namespace App\Services\Olx;
 
-use App\Enums\CarProviderEnum;
 use App\Exceptions\CarProcessIgnoreException;
 use App\Services\CarProcessService;
 use Illuminate\Support\Carbon;
@@ -25,11 +24,6 @@ class OlxProcessService extends CarProcessService
         $this->node = new Crawler($this->data);
 
         return parent::getData();
-    }
-
-    public function getProvider(): CarProviderEnum
-    {
-        return CarProviderEnum::OLX();
     }
 
     public function getVersion(): string|null

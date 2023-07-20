@@ -114,6 +114,6 @@ document.addEventListener('click', function (e) {
         }
     }
     catch (error) {
-        // console.log(error)
+        // console.error(error)
     }
 });

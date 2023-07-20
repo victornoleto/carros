@@ -23,7 +23,7 @@ class OlxSyncService extends CarSyncService
         return $url;
     }
 
-    public function getPageUnprocessedResults(string|array $pageResults): array
+    public function getPageUnprocessedResults(string $pageResults): array
     {
         $crawler = new Crawler($pageResults);
 

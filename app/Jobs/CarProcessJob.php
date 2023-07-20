@@ -32,7 +32,7 @@ abstract class CarProcessJob implements ShouldQueue
         public string|array $data,
     ) {
         $this->setProviderByClassName();
-
+        
         $this->processService = $this->provider->getProcessService([
             'brand' => $this->brand,
             'model' => $this->model,

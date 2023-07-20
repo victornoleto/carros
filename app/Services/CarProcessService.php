@@ -40,8 +40,6 @@ abstract class CarProcessService
         return $data;
     }
 
-    abstract public function getProvider(): CarProviderEnum;
-
     abstract public function getVersion(): string|null;
 
     abstract public function getYear(): int;

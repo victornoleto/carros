@@ -27,7 +27,7 @@ abstract class CarSyncService
 
     abstract public function getPageRequestUrl(string $brand, string $model, int $page = 1): string;
 
-    abstract public function getPageUnprocessedResults(string|array $pageResults): array;
+    abstract public function getPageUnprocessedResults(string $pageResults): array;
 
     public function getPageEntireResults(string $brand, string $model, int $page = 1): string|array
     {
@@ -44,14 +44,14 @@ abstract class CarSyncService
         return $contents;
     }
 
-    public function getPageRequestOptions(): array
+    public function getPageRequestOptions(string $brand, string $model, int $page = 1): array
     {
         return [
-            'headers' => $this->getPageRequestHeaders()
+            'headers' => $this->getPageRequestHeaders($brand, $model, $page)
         ];
     }
 
-    public function getPageRequestHeaders(): array
+    public function getPageRequestHeaders(string $brand, string $model, int $page = 1): array
     {
         return [
             'authority' => str_replace('https://', '', $this->provider->getUrl()),

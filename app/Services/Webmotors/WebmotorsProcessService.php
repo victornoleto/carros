@@ -2,7 +2,6 @@
 
 namespace App\Services\Webmotors;
 
-use App\Enums\CarProviderEnum;
 use App\Services\CarProcessService;
 use Illuminate\Support\Carbon;
 
@@ -11,35 +10,29 @@ class WebmotorsProcessService extends CarProcessService
     public function __construct(
         string $brand,
         string $model,
-        public array $adResult,
-        public string|null $state
+        public array $data,
     ) {
         parent::__construct($brand, $model);
     }
 
-    public function getProvider(): CarProviderEnum
-    {
-        return CarProviderEnum::WEBMOTORS();
-    }
-
     public function getVersion(): string|null
     {
-        return $this->adResult['version'];
+        return $this->data['version'];
     }
 
     public function getYear(): int
     {
-        return explode('/', $this->adResult['year'])[0];
+        return explode('/', $this->data['year'])[0];
     }
 
     public function getYearModel(): int|null
     {
-        return explode('/', $this->adResult['year'])[1];
+        return explode('/', $this->data['year'])[1];
     }
 
     public function getPrice(): float
     {
-        $price = $this->adResult['price'];
+        $price = $this->data['price'];
 
         $price = str_replace('R$ ', '', $price);
 
@@ -52,7 +45,7 @@ class WebmotorsProcessService extends CarProcessService
 
     public function getOdometer(): int
     {
-        $odometer = $this->adResult['travelledDistance'];
+        $odometer = $this->data['travelledDistance'];
 
         $odometer = str_replace(' km', '', $odometer);
 
@@ -71,7 +64,7 @@ class WebmotorsProcessService extends CarProcessService
 
     public function getProviderId(): string
     {
-        return $this->adResult['id'];
+        return $this->data['id'];
     }
 
     public function getProviderUpdatedAt(): Carbon
@@ -87,7 +80,7 @@ class WebmotorsProcessService extends CarProcessService
     private function getStateAndCity(): array
     {
 
-        $location = $this->adResult['location'];
+        $location = $this->data['location'];
 
         list($city, $state) = explode(' - ', $location);
 

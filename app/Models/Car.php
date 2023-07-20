@@ -160,11 +160,11 @@ class Car extends Model
 
                 foreach ($cities as $text) {
 
-                    list($city, $state) = explode('/', $text);
+                    /* list($city, $state) = explode('/', $text);
 
                     $query->orWhere(function ($q) use ($city, $state) {
                         $q->where('city', $city)->where('state', $state);
-                    });
+                    }); */
                 }
 
             });

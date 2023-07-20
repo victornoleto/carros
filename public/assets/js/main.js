@@ -37,15 +37,9 @@ $(function() {
 
             var value = $select.val();
 
-            //name = name.replace('[]', '');
-
-            if (Array.isArray(value) ? value.length > 0 : value) {
-                filters[name] = encodeURIComponent(JSON.stringify(value));;
-            }
+            filters[name] = value;
 
         });
-
-        console.log(filters);
 
         return filters;
     };
@@ -65,8 +59,6 @@ $(function() {
     
             var query = new URLSearchParams(filters).toString();
 
-            console.log(filters, query);
-        
             window.open('table?' + query, '_blank').focus();
         }
             
@@ -257,10 +249,7 @@ $(function() {
 
         var $page = $(this);
 
-        console.log('opa');
-
         $page.on('click', '#filters-button', function() {
-            console.log('opa');
             $(this).closest('form').trigger('submit');
         });
 

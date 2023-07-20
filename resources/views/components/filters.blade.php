@@ -43,7 +43,7 @@
         
             <div class="form-group mb-3">
         
-                <label for="">Quilometragem <small class="opacity-50">(R$ x1000)</small></label>
+                <label for="">Quilometragem <small class="opacity-50">(Km x1000)</small></label>
         
                 <div class="row">
                     <div class="col-6">
