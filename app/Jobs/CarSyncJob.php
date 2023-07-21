@@ -75,7 +75,7 @@ abstract class CarSyncJob implements ShouldQueue
                 'data' => $unprocessedResult,
             ]);
     
-            dispatch($processJob)->onQueue('cars:process');
+            dispatch($processJob)->onQueue('cars-process');
         }
     
         if (count($unprocessedResults) > 0 && $this->recursive) {
@@ -84,7 +84,7 @@ abstract class CarSyncJob implements ShouldQueue
                 sleep(1);
             }
                 
-            self::dispatch($this->brand, $this->model, $this->page + 1, true)->onQueue('cars:sync');
+            self::dispatch($this->brand, $this->model, $this->page + 1, true)->onQueue('cars-sync');
         }
     }
 

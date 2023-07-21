@@ -21,10 +21,6 @@ class CarsSyncCommand extends Command
 
         foreach ($providers as $provider) {
 
-            if ($provider->value == CarProviderEnum::ICARROS) {
-                continue;
-            }
-
             if ($providerValue && $providerValue != $provider->value) {
                 continue;
             }
@@ -38,7 +34,7 @@ class CarsSyncCommand extends Command
                 'recursive' => true,
             ]);
 
-            dispatch($job)->onQueue('cars:sync');
+            dispatch($job)->onQueue('cars-sync');
         }
     }
 }

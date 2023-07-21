@@ -4,7 +4,7 @@
 	"tries": 3,
 	"timeout": 0,
 	"user": "victor",
-	"numprocs": 1,
+	"numprocs": 5,
 	"queues": [
 		{
 			"name": "cars-process"

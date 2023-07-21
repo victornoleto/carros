@@ -19,6 +19,8 @@ class TestController extends Controller
             
             $results = $service->getPageResults($brand, $model, $page);
 
+            dd($results);
+
             $results = array_filter($results, function ($result) {
                 return isset($result['result']);
             });
@@ -30,11 +32,13 @@ class TestController extends Controller
             return response($results);
 
         } catch (\Exception $e) {
-            abort($e->getCode(), $e->getMessage());
+            dd($e);
+            abort(Response::HTTP_INTERNAL_SERVER_ERROR, $e->getMessage());
         }
     }
 
-    public function tmp() {
+    public function tmp()
+    {
 
         $provider = \App\Enums\CarProviderEnum::fromValue('olx');
 

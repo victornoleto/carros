@@ -2,7 +2,6 @@
 
 namespace App\Services\iCarros;
 
-use App\Enums\CarProviderEnum;
 use App\Exceptions\CarProcessIgnoreException;
 use App\Services\CarProcessService;
 use Illuminate\Support\Carbon;
@@ -15,22 +14,16 @@ class iCarrosProcessService extends CarProcessService
     public function __construct(
         string $brand,
         string $model,
-        public string $adResult,
-        public string|null $state
+        public string $data,
     ) {
         parent::__construct($brand, $model);
     }
 
     public function getData(): array
     {
-        $this->node = new Crawler($this->adResult);
+        $this->node = new Crawler($this->data);
 
         return parent::getData();
-    }
-
-    public function getProvider(): CarProviderEnum
-    {
-        return CarProviderEnum::ICARROS();
     }
     
     public function getVersion(): string|null
@@ -96,8 +89,13 @@ class iCarrosProcessService extends CarProcessService
 
     public function getProviderId(): string
     {
-        return $this->node->filter('li.offer-card')
-            ->attr('data-anuncioid');
+        $url = explode('?', $this->getProviderUrl())[0];
+
+        $parts = explode('/', $url);
+
+        $id = str_replace('d', '', end($parts));
+
+        return $id;
     }
 
     public function getProviderUpdatedAt(): Carbon
@@ -110,7 +108,7 @@ class iCarrosProcessService extends CarProcessService
         $url = $this->node->filter('.offer-card__image-container')
             ->attr('href');
 
-        return iCarrosSyncService::$serverUrl.$url;
+        return $url;
     }
 
     private function getStateAndCity(): array

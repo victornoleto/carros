@@ -2,8 +2,6 @@
 
 namespace App\Services\UsadosBr;
 
-use App\Enums\CarProviderEnum;
-use App\Exceptions\CarProcessIgnoreException;
 use App\Services\CarProcessService;
 use Illuminate\Support\Carbon;
 use Symfony\Component\DomCrawler\Crawler;
@@ -15,22 +13,16 @@ class UsadosBrProcessService extends CarProcessService
     public function __construct(
         string $brand,
         string $model,
-        public string $adResult,
-        public string|null $state
+        public string $data,
     ) {
         parent::__construct($brand, $model);
     }
 
     public function getData(): array
     {
-        $this->node = new Crawler($this->adResult);
+        $this->node = new Crawler($this->data);
 
         return parent::getData();
-    }
-
-    public function getProvider(): CarProviderEnum
-    {
-        return CarProviderEnum::USADOSBR();
     }
 
     public function getVersion(): string|null
@@ -104,9 +96,7 @@ class UsadosBrProcessService extends CarProcessService
     {
         $href = $this->node->filter('a')->attr('href');
 
-        $url = UsadosBrSyncService::$serverUrl . $href;
-
-        return $url;
+        return $href;
     }
 
     private function getStateAndCity(): array

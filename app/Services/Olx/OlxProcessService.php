@@ -176,8 +176,19 @@ class OlxProcessService extends CarProcessService
                         ->filter('p');
 
         $text = $elements->eq(0)->text();
-        
-        $parts = explode(' - ', $text);
+
+        if (env('STATE_FILTER')) {
+
+            $parts = explode(', ', $text);
+
+            $parts = [
+                env('STATE_FILTER'),
+                $parts[0],
+            ];
+
+        } else {
+            $parts = explode(' - ', $text);
+        }
 
         return $parts;
     }

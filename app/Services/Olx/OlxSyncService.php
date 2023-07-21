@@ -18,6 +18,10 @@ class OlxSyncService extends CarSyncService
 
         $url = "/autos-e-pecas/carros-vans-e-utilitarios/$brand/$model";
 
+        if (env('STATE_FILTER')) {
+            $url .= '/estado-' . env('STATE_FILTER');
+        }
+
         $url .= "?o=$page&sf=1";
 
         return $url;

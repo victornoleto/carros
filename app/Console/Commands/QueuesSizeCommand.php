@@ -20,23 +20,19 @@ class QueuesSizeCommand extends Command
     
             $data = [];
     
-            foreach ($providers as $instance) {
-    
-                $queues = [
-                    $instance->getSyncQueueName(),
-                    $instance->getProcessQueueName(),
-                    $instance->getUpdateQueueName()
+            $queues = [
+                'cars-sync',
+                'cars-process'
+            ];
+
+            foreach ($queues as $queueName) {
+
+                $size = Queue::size($queueName);
+
+                $data[] = [
+                    'queue' => $queueName,
+                    'size' => $size,
                 ];
-    
-                foreach ($queues as $queueName) {
-    
-                    $size = Queue::size($queueName);
-    
-                    $data[] = [
-                        'queue' => $queueName,
-                        'size' => $size,
-                    ];
-                }
             }
     
             $this->table(array_keys($data[0]), $data);
