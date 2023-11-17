@@ -150,9 +150,9 @@ class Car extends Model
             $query->where('odometer', '<=', $request->odometer_max * 1000);
         }
 
-        $states = $request->get('states', []);
-        $cities = $request->get('cities', []);
-        $models = $request->get('models', []);
+        $states = array_filter($request->get('states', []));
+        $cities = array_filter($request->get('cities', []));
+        $models = array_filter($request->get('models', []));
 
         $query->when(count($states) > 0, function ($query) use ($states) {
             $query->whereIn('state', $states);
