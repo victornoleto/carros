@@ -19,8 +19,6 @@ class TestController extends Controller
             
             $results = $service->getPageResults($brand, $model, $page);
 
-            dd($results);
-
             $results = array_filter($results, function ($result) {
                 return isset($result['result']);
             });
@@ -32,24 +30,7 @@ class TestController extends Controller
             return response($results);
 
         } catch (\Exception $e) {
-            dd($e);
             abort(Response::HTTP_INTERNAL_SERVER_ERROR, $e->getMessage());
         }
-    }
-
-    public function tmp()
-    {
-
-        $provider = \App\Enums\CarProviderEnum::fromValue('olx');
-
-        $syncService = $provider->getSyncService();
-    
-        $startTime = microtime(true);
-    
-        $pageResults = $syncService->getPageEntireResults('mitsubishi', 'lancer', 1);
-
-        $unprocessedResults = $syncService->getPageUnprocessedResults($pageResults);
-
-        dd($unprocessedResults);
     }
 }

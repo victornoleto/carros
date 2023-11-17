@@ -22,7 +22,9 @@ class OlxSyncService extends CarSyncService
             $url .= '/estado-' . env('STATE_FILTER');
         }
 
-        $url .= "?o=$page&sf=1";
+        // ano >= 2000
+        // quilometragem <= 300000
+        $url .= "?o=$page&sf=1&me=300000&rs=50";
 
         return $url;
     }
@@ -31,13 +33,21 @@ class OlxSyncService extends CarSyncService
     {
         $crawler = new Crawler($pageResults);
 
-        $nodes = $crawler->filter('#ad-list > li:not(.sponsored)');
+        $nodes = $crawler->filter('script#__NEXT_DATA__');
 
-        $ads = [];
+        $json = $nodes->innerText();
 
-        foreach ($nodes as $node) {
+        $data = json_decode($json, true);
+
+        $ads = $data['props']['pageProps']['ads'];
+
+        $ads = array_filter($ads, function($item) {
+            return !isset($item['advertisingId']);
+        });
+
+        /* foreach ($nodes as $node) {
             array_push($ads, (new Crawler($node))->html());
-        }
+        } */
 
         return $ads;
     }

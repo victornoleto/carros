@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Artisan;
 
 class FullCarSyncCommand extends Command
 {
-    protected $signature = 'car:full-sync';
+    protected $signature = 'cars:full-sync';
 
     public function handle()
     {
@@ -23,47 +23,50 @@ class FullCarSyncCommand extends Command
             //'dodge ram',
             //'volkswagen amarok',
 
-            // carros populares
-            //'fiat argo',
-            //'ford ka',
-            //'chevrolet onix',
+            //carros populares
+            'fiat argo',
+            'ford ka',
+            'chevrolet onix',
             'peugeot 208',
-            //'volkswagen polo',
-            //'volkswagen gol',
-            //'volkswagen fox',
-            //'hyundai hb20',
+            'volkswagen polo',
+            'volkswagen gol',
+            'volkswagen fox',
+            'hyundai hb20',
+            'honda city',
 
+            // sedans "populares"
+            'nissan sentra',
+            'volkswagen virtus',
+            'renault fluence',
+            'mitsubishi lancer',
+            'hyundai hb20s',
+            'chevrolet cruze',
+            'honda civic',
+            'toyota corolla',
+
+            'ford fusion',
             //'audi a3',
-            'audi a4',
+            //'audi a4',
             //'audi a5',
-            'bmw 320i',
+            //'bmw 320i',
             //'bmw m2',
             //'bmw m3',
-            'ford fusion',
             //'ford mustang',
             //'chevrolet camaro',
-            //'chevrolet cruze',
-            //'honda city',
-            'honda civic',
-            //'hyundai hb20s',
-            'mercedes-benz c-180',
-            'mitsubishi lancer',
+            //'mercedes-benz c-180',
             //'nissan 350z',
-            'nissan 370z',
-            //'nissan sentra',
-            'toyota corolla',
-            'volkswagen jetta',
-            //'volkswagen virtus',
-            //'renault fluence',
+            //'nissan 370z',
+            //'volkswagen jetta',
         ];
 
         foreach ($list as $item) {
 
             list($brand, $model) = explode(' ', $item);
 
-            Artisan::call('car:sync', [
+            Artisan::call('cars:sync', [
                 'brand' => $brand,
-                'model' => $model
+                'model' => $model,
+                'provider' => 'olx'
             ]);
         }
     }

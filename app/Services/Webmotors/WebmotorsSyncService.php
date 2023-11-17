@@ -13,7 +13,9 @@ class WebmotorsSyncService extends CarSyncService
 
     public function getPageRequestOptions(string $brand, string $model, int $page = 1): array
     {
-        $filter = env('STATE_FILTER', 'estoque');
+        $filter = env('STATE_FILTER');
+
+        $filter = empty($filter) ? 'estoque' : $filter;
 
         return [
             'query' => [

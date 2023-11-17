@@ -8,8 +8,8 @@ use Illuminate\Support\Carbon;
 class WebmotorsProcessService extends CarProcessService
 {
     public function __construct(
-        string $brand,
-        string $model,
+        public string $brand,
+        public string $model,
         public array $data,
     ) {
         parent::__construct($brand, $model);
@@ -74,7 +74,29 @@ class WebmotorsProcessService extends CarProcessService
 
     public function getProviderUrl(): string|null
     {
-        return null;
+        $year = $this->getYear();
+
+        $yearModel = $this->getYearModel();
+
+        $price = $this->getPrice();
+
+        $odometer = $this->getOdometer();
+
+        $minPrice = floor($price / 1000) * 1000;
+
+        $maxPrice = ceil($price / 1000) * 1000;
+
+        $minOdometer = floor($odometer / 1000) * 1000;
+
+        $maxOdometer = ceil($odometer / 1000) * 1000;
+
+        $brand = $this->brand;
+
+        $model = $this->model;
+
+        $url = "https://www.webmotors.com.br/carros/estoque/$brand/$model/de.$year/ate.$yearModel?tipoveiculo=carros&anoate=$yearModel&anode=$year&kmate=$maxOdometer&kmde=$minOdometer&marca1=$brand&modelo1=$model&precoate=$maxPrice&precode=$minPrice";
+
+        return $url;
     }
 
     private function getStateAndCity(): array

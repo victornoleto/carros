@@ -15,29 +15,6 @@ class HomeController extends Controller
     //
     public function dashboard(Request $request): View
     {
-        $request->merge([
-            'models' => [
-                /* 'peugeot 208',
-                'fiat argo',
-                'ford ka',
-                'chevrolet onix',
-                'volkswagen polo',
-                'volkswagen gol',
-                'volkswagen fox',
-                'hyundai hb20', */
-                //'mercedes-benz c-180',
-                //'bmw 320i',
-                //'audi a4',
-                //'volkswagen jetta',
-                'mitsubishi lancer',
-                //'honda civic',
-                //'toyota corolla',
-            ],
-            'states' => [
-                'df', 'go'
-            ]
-        ]);
-
         return view('dashboard');
     }
 

@@ -13,7 +13,7 @@ class Car extends Model
 {
     use HasFactory;
 
-    public static $round = 10_000;
+    public static $round = 1;
 
     protected $guarded = [];
 
@@ -120,7 +120,11 @@ class Car extends Model
     public function scopeSearch($query, Request $request): void
     {
         $query->whereRaw('active is true')
-            ->whereRaw('banned is false');
+            ->whereRaw('banned is false')
+            ->where('price', '>', 1300)
+            ->where('odometer', '>', 1000);
+
+        $query->where('provider', '=', CarProviderEnum::OLX);
 
         if (is_numeric($request->year_min)) {
             $query->where('year', '>=', $request->year_min);

@@ -25,6 +25,10 @@ class CarsSyncCommand extends Command
                 continue;
             }
 
+            if (in_array($provider->value, [CarProviderEnum::ICARROS, CarProviderEnum::USADOSBR])) {
+                continue;
+            }
+
             $this->comment("Syncing {$provider->value} {$brand} {$model}...");
 
             $job = $provider->getSyncJob([

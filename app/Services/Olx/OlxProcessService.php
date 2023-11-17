@@ -2,49 +2,33 @@
 
 namespace App\Services\Olx;
 
-use App\Exceptions\CarProcessIgnoreException;
 use App\Services\CarProcessService;
 use Illuminate\Support\Carbon;
-use Symfony\Component\DomCrawler\Crawler;
+use Illuminate\Support\Facades\Log;
 
 class OlxProcessService extends CarProcessService
 {
-    public Crawler $node;
-
     public function __construct(
         string $brand,
         string $model,
-        public string $data,
+        public array $data,
     ) {
         parent::__construct($brand, $model);
     }
 
     public function getData(): array
     {
-        $this->node = new Crawler($this->data);
-
         return parent::getData();
     }
 
     public function getVersion(): string|null
     {
-        $text = $this->node->filter('h2.title')->text();
-
-        return $text;
+        return $this->getProperty('vehicle_model');
     }
 
     public function getYear(): int
-    {
-        $elements = $this->node->filter('[data-testid="ds-adcard-content"]')
-            ->children()
-                ->eq(0)->children()
-                    ->filter('ul li');
-
-        $text = $elements->eq(1)->text();
-
-        $year = intval($text);
-
-        return $year;
+    {   
+        return intval($this->getProperty('regdate'));
     }
 
     public function getYearModel(): int|null
@@ -54,13 +38,7 @@ class OlxProcessService extends CarProcessService
 
     public function getPrice(): float
     {
-        $priceNode = $this->node->filter('h3.price');
-
-        if (!$priceNode->count()) {
-            throw new CarProcessIgnoreException('Price not found.');
-        }
-        
-        $price = str_replace('R$ ', '', $priceNode->text());
+        $price = str_replace('R$ ', '', $this->data['price']);
 
         $price = str_replace('.', '', $price);
 
@@ -73,123 +51,44 @@ class OlxProcessService extends CarProcessService
 
     public function getOdometer(): int
     {
-        $elements = $this->node->filter('[data-testid="ds-adcard-content"]')
-            ->children()
-                ->eq(0)->children()
-                    ->filter('ul li');
-
-        $text = $elements->eq(0)->text();
-
-        $text = str_replace(' km', '', $text);
-        
-        $text = str_replace('.', '', $text);
-
-        $odometer = intval($text);
-
-        return $odometer;
+        return intval($this->getProperty('mileage'));
     }
 
     public function getState(): string
     {
-        return $this->getStateAndCity()[1];
+        return $this->data['locationDetails']['uf'];
     }
 
     public function getCity(): string
     {
-        return $this->getStateAndCity()[0];
+        return $this->data['locationDetails']['municipality'];
     }
 
     public function getProviderId(): string
     {
-        return $this->getUrlAndId()[1];
+        return $this->data['listId'];
     }
 
     public function getProviderUpdatedAt(): Carbon
     {
-        $elements = $this->node->filter('[data-testid="ds-adcard-content"]')
-            ->children()->eq(1)
-                ->children()->eq(0)
-                    ->children()->eq(1)
-                        ->filter('p');
+        $ts = $this->data['date'];
 
-        $text = $elements->eq(1)->text();
+        $date = Carbon::createFromTimestamp($ts. 'America/Sao_Paulo');
 
-        $parts = explode(', ', $text);
-
-        $date = $parts[0];
-
-        if ($date == 'Hoje') {
-            $date = date('Y-m-d');
-        
-        } elseif ($date == 'Ontem') {
-            $date = date('Y-m-d', strtotime('-1 day'));
-        
-        } else {
-
-            $months = [
-                'jan' => '01',
-                'fev' => '02',
-                'mar' => '03',
-                'abr' => '04',
-                'mai' => '05',
-                'jun' => '06',
-                'jul' => '07',
-                'ago' => '08',
-                'set' => '09',
-                'out' => '10',
-                'nov' => '11',
-                'dez' => '12',
-            ];
-
-            list($day, $month) = explode(' de ', $date);
-
-            $day = str_pad($day, 2, '0', STR_PAD_LEFT);
-
-            $date = date('Y').'-'.$months[$month].'-'.$day;
-        }
-
-        return Carbon::createFromFormat('Y-m-d H:i:s', $date.' '.$parts[1].':00');
+        return $date;
     }
 
     public function getProviderUrl(): string
     {
-        return $this->getUrlAndId()[0];
+        return $this->data['url'];
     }
 
-    private function getUrlAndId(): array
+    private function getProperty(string $property): string|null
     {
-        $url = $this->node->filter('[data-ds-component="DS-NewAdCard-Link"]')->attr('href');
-
-        $parts = explode('-', $url);
-
-        $id = intval($parts[count($parts) - 1]);
-
-        return [$url, $id];
-    }
-
-    private function getStateAndCity(): array
-    {
-        $elements = $this->node->filter('[data-testid="ds-adcard-content"]')
-            ->children()->eq(1)
-                ->children()->eq(0)
-                    ->children()->eq(1)
-                        ->filter('p');
-
-        $text = $elements->eq(0)->text();
-
-        if (env('STATE_FILTER')) {
-
-            $parts = explode(', ', $text);
-
-            $parts = [
-                env('STATE_FILTER'),
-                $parts[0],
-            ];
-
-        } else {
-            $parts = explode(' - ', $text);
+        foreach ($this->data['properties'] as $row) {
+            if ($row['name'] == $property) return $row['value'];
         }
 
-        return $parts;
+        return null;
     }
 }

@@ -65,7 +65,7 @@ abstract class CarSyncService
         $pageResults = $this->getPageEntireResults($brand, $model, $page);
 
         $unprocessedResults = $this->getPageUnprocessedResults($pageResults);
-        
+
         $results = [];
         
         foreach ($unprocessedResults as $unprocessedResult) {
