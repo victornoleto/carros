@@ -237,10 +237,16 @@ $(function() {
             })
         }
     
-        loadCars();
+        //loadCars();
 
-        $page.on('click', '#filters-button', function() {
+        $page.find('#filters').on('submit', function(e) {
+
+            e.preventDefault();
+
             loadCars();
+
+            return false;
+
         });
 
     });

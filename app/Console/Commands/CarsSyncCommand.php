@@ -25,6 +25,7 @@ class CarsSyncCommand extends Command
                 continue;
             }
 
+            // TODO Reativar iCarros e UsadosBR no futuro
             if (in_array($provider->value, [CarProviderEnum::ICARROS, CarProviderEnum::USADOSBR])) {
                 continue;
             }

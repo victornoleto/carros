@@ -1,5 +1,5 @@
 @props([
-    'buttonType' => 'button'
+    'buttonType' => 'submit'
 ])
 
 <form id="filters" class="p-4 d-flex flex-column overflow-hidden" action="">
@@ -88,7 +88,7 @@
 
                 <label for="">Modelos</label>
 
-                <select name="models[]" class="form-select select2" multiple>
+                <select name="models[]" class="form-select select2" multiple required>
 
                     @foreach ($models as $model)
                         <option value="{{ $model['text'] }}" {{ in_array($model['text'], (Request::get('models') ?? [])) ? 'selected' : '' }}>{{ $model['text'] }}</option>
@@ -107,6 +107,7 @@
         <button id="clear-filters-button" type="button" class="btn btn-light w-100 fw-bold">Limpar</button>
 
         <button id="filters-button" type="{{ $buttonType }}" class="btn btn-dark w-100 fw-bold">Atualizar</button>
+
     </div>
 
 </form>

@@ -14,16 +14,16 @@ class FullCarSyncCommand extends Command
         $list = [
 
             // pickups
-            //'toyota hilux',
-            //'fiat toro',
-            //'nissan frontier',
-            //'chevrolet s10',
-            //'mitsubishi l200',
-            //'ford ranger',
-            //'dodge ram',
-            //'volkswagen amarok',
+            'toyota hilux',
+            'fiat toro',
+            'nissan frontier',
+            'chevrolet s10',
+            'mitsubishi l200',
+            'ford ranger',
+            'dodge ram',
+            'volkswagen amarok',
 
-            //carros populares
+            //carros "populares"
             'fiat argo',
             'ford ka',
             'chevrolet onix',
@@ -34,7 +34,7 @@ class FullCarSyncCommand extends Command
             'hyundai hb20',
             'honda city',
 
-            // sedans "populares"
+            // outros
             'nissan sentra',
             'volkswagen virtus',
             'renault fluence',
@@ -43,20 +43,19 @@ class FullCarSyncCommand extends Command
             'chevrolet cruze',
             'honda civic',
             'toyota corolla',
-
             'ford fusion',
-            //'audi a3',
-            //'audi a4',
-            //'audi a5',
-            //'bmw 320i',
-            //'bmw m2',
-            //'bmw m3',
-            //'ford mustang',
-            //'chevrolet camaro',
-            //'mercedes-benz c-180',
-            //'nissan 350z',
-            //'nissan 370z',
-            //'volkswagen jetta',
+            'audi a3',
+            'audi a4',
+            'audi a5',
+            'bmw 320i',
+            'bmw m2',
+            'bmw m3',
+            'ford mustang',
+            'chevrolet camaro',
+            'mercedes-benz c-180',
+            'nissan 350z',
+            'nissan 370z',
+            'volkswagen jetta',
         ];
 
         foreach ($list as $item) {
@@ -66,7 +65,7 @@ class FullCarSyncCommand extends Command
             Artisan::call('cars:sync', [
                 'brand' => $brand,
                 'model' => $model,
-                'provider' => 'olx'
+                //'provider' => 'olx'
             ]);
         }
     }

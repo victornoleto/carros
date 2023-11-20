@@ -1,6 +1,6 @@
 <div id="page-with-filters" class="d-flex">
 
-	<x-filters></x-filters>
+	<x-filters />
 
 	<div class="flex-grow-1 position-relative overflow-hidden">
 
@@ -9,7 +9,6 @@
 			{{ $slot }}
 
 		</div>
-
 
 	</div>
 
