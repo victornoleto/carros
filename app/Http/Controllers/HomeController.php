@@ -65,28 +65,6 @@ class HomeController extends Controller
 
     public function redirect(Car $car): RedirectResponse
     {
-        if ($car->provider == CarProviderEnum::OLX) {
-            return redirect()->away($car->provider_url);
-        
-        } elseif ($car->provider == CarProviderEnum::WEBMOTORS) {
-            return $this->redirectToWebmotorsAdPage($car);
-        }
-    }
-
-    private function redirectToWebmotorsAdPage(Car $car): RedirectResponse
-    {
-        $parts = [
-            'https://www.webmotors.com.br/comprar',
-            $car->brand,
-            $car->model,
-            slugify($car->version),
-            '4-portas',
-            $car->year.'-'.$car->year_model,
-            $car->provider_id
-        ];
-
-        $url = implode('/', $parts);
-
-        return redirect()->away($url, 302, WebmotorsSyncService::getHeaders());
+        return redirect()->away($car->provider_url);
     }
 }

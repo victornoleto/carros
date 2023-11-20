@@ -119,12 +119,11 @@ class Car extends Model
 
     public function scopeSearch($query, Request $request): void
     {
-        $query->whereRaw('active is true')
-            ->whereRaw('banned is false')
-            ->where('price', '>', 1300)
-            ->where('odometer', '>', 1000);
-
-        $query->where('provider', '=', CarProviderEnum::OLX);
+        $query
+            ->whereRaw('active is true')
+            ->whereRaw('banned is false');
+            //->where('price', '>', 1300)
+            //->where('odometer', '>', 1000);
 
         if (is_numeric($request->year_min)) {
             $query->where('year', '>=', $request->year_min);
