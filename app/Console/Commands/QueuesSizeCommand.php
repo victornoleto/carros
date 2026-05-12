@@ -17,12 +17,12 @@ class QueuesSizeCommand extends Command
         while (true) {
 
             $providers = CarProviderEnum::getInstances();
-    
+
             $data = [];
-    
+
             $queues = [
                 'cars-sync',
-                'cars-process'
+                'cars-process',
             ];
 
             foreach ($queues as $queueName) {
@@ -34,7 +34,7 @@ class QueuesSizeCommand extends Command
                     'size' => $size,
                 ];
             }
-    
+
             $this->table(array_keys($data[0]), $data);
 
             if ($live) {

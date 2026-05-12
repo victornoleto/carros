@@ -25,12 +25,12 @@ class iCarrosProcessService extends CarProcessService
 
         return parent::getData();
     }
-    
-    public function getVersion(): string|null
+
+    public function getVersion(): ?string
     {
         $version = $this->node->filter('.offer-card__header a')
             ->children()
-                ->eq(1)->text();
+            ->eq(1)->text();
 
         return $version;
     }
@@ -40,7 +40,7 @@ class iCarrosProcessService extends CarProcessService
         return $this->getYearAndYearModel()[0];
     }
 
-    public function getYearModel(): int|null
+    public function getYearModel(): ?int
     {
         return $this->getYearAndYearModel()[1];
     }
@@ -49,7 +49,7 @@ class iCarrosProcessService extends CarProcessService
     {
         $price = $this->node->filter('.offer-card__price-container')
             ->children()
-                ->eq(0)->text();
+            ->eq(0)->text();
 
         $price = str_replace('R$ ', '', $price);
 
@@ -66,10 +66,10 @@ class iCarrosProcessService extends CarProcessService
     {
         $text = $this->node->filter('.info-container__car-info')
             ->children()
-                ->eq(1)->text();
+            ->eq(1)->text();
 
         $text = str_replace(' Km', '', $text);
-        
+
         $text = str_replace('.', '', $text);
 
         $odometer = intval($text);
@@ -129,9 +129,9 @@ class iCarrosProcessService extends CarProcessService
     {
         $text = $this->node->filter('.info-container__car-info')
             ->children()
-                ->eq(0)->text();
+            ->eq(0)->text();
 
-        list($year, $yearModel) = explode('/', $text);
+        [$year, $yearModel] = explode('/', $text);
 
         $year = intval($year);
 

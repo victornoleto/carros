@@ -4,7 +4,6 @@ namespace App\Services\Olx;
 
 use App\Services\CarProcessService;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Log;
 
 class OlxProcessService extends CarProcessService
 {
@@ -21,17 +20,17 @@ class OlxProcessService extends CarProcessService
         return parent::getData();
     }
 
-    public function getVersion(): string|null
+    public function getVersion(): ?string
     {
         return $this->getProperty('vehicle_model');
     }
 
     public function getYear(): int
-    {   
+    {
         return intval($this->getProperty('regdate'));
     }
 
-    public function getYearModel(): int|null
+    public function getYearModel(): ?int
     {
         return null;
     }
@@ -73,7 +72,7 @@ class OlxProcessService extends CarProcessService
     {
         $ts = $this->data['date'];
 
-        $date = Carbon::createFromTimestamp($ts. 'America/Sao_Paulo');
+        $date = Carbon::createFromTimestamp($ts, 'America/Sao_Paulo');
 
         return $date;
     }
@@ -83,10 +82,12 @@ class OlxProcessService extends CarProcessService
         return $this->data['url'];
     }
 
-    private function getProperty(string $property): string|null
+    private function getProperty(string $property): ?string
     {
         foreach ($this->data['properties'] as $row) {
-            if ($row['name'] == $property) return $row['value'];
+            if ($row['name'] == $property) {
+                return $row['value'];
+            }
         }
 
         return null;

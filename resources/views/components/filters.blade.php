@@ -77,7 +77,7 @@
                 <select name="cities[]" class="form-select select2" multiple>
 
                     @foreach ($cities as $city)
-                        <option value="{{ $city['text'] }}" {{ in_array($city['name'], Request::get('cities') ?? []) ? 'selected' : '' }}>{{ $city['text'] }}</option>
+                        <option value="{{ $city['text'] }}" {{ in_array($city['text'], Request::get('cities') ?? []) ? 'selected' : '' }}>{{ $city['text'] }}</option>
                     @endforeach
 
                 </select>
@@ -105,6 +105,12 @@
     <div class="footer d-flex flex-column gap-2">
 
         <button id="clear-filters-button" type="button" class="btn btn-light w-100 fw-bold">Limpar</button>
+
+        @auth
+            <a href="{{ route('alerts.create', request()->query()) }}" class="btn btn-outline-dark w-100 fw-bold">Criar alerta</a>
+        @else
+            <a href="{{ route('login') }}" class="btn btn-outline-dark w-100 fw-bold">Entrar para criar alerta</a>
+        @endauth
 
         <button id="filters-button" type="{{ $buttonType }}" class="btn btn-dark w-100 fw-bold">Atualizar</button>
 

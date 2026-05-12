@@ -2,9 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\CarProviderEnum;
 use App\Models\Car;
-use App\Services\Webmotors\WebmotorsSyncService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -26,9 +24,9 @@ class HomeController extends Controller
 
         foreach ($data as $row) {
 
-            $key = $row->brand . ' ' . $row->model;
+            $key = $row->brand.' '.$row->model;
 
-            if (!isset($datasets[$key])) {
+            if (! isset($datasets[$key])) {
 
                 $datasets[$key] = [
                     'label' => $key,
@@ -40,7 +38,7 @@ class HomeController extends Controller
                 'x' => $row->odometer / 1000,
                 'y' => $row->price / 1000,
                 'r' => 10,
-                'data' => $row
+                'data' => $row,
             ];
         }
 
@@ -56,10 +54,10 @@ class HomeController extends Controller
             ->orderBy('price', 'asc')
             ->orderBy('odometer', 'asc');
 
-        $cars = $query->get();
+        $cars = $query->paginate(50)->withQueryString();
 
         return view('table', [
-            'cars' => $cars
+            'cars' => $cars,
         ]);
     }
 

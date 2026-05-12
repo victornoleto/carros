@@ -18,8 +18,8 @@ class OlxSyncService extends CarSyncService
 
         $url = "/autos-e-pecas/carros-vans-e-utilitarios/$brand/$model";
 
-        if (env('STATE_FILTER')) {
-            $url .= '/estado-' . env('STATE_FILTER');
+        if (config('car_scraping.state_filter')) {
+            $url .= '/estado-'.config('car_scraping.state_filter');
         }
 
         // ano >= 2000
@@ -41,8 +41,8 @@ class OlxSyncService extends CarSyncService
 
         $ads = $data['props']['pageProps']['ads'];
 
-        $ads = array_filter($ads, function($item) {
-            return !isset($item['advertisingId']);
+        $ads = array_filter($ads, function ($item) {
+            return ! isset($item['advertisingId']);
         });
 
         /* foreach ($nodes as $node) {

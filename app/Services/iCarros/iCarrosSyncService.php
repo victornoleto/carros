@@ -11,10 +11,10 @@ class iCarrosSyncService extends CarSyncService
     {
         $url = '/comprar';
 
-        if (env('STATE_FILTER')) {
-            $url .= '/' . env('STATE_FILTER');
+        if (config('car_scraping.state_filter')) {
+            $url .= '/'.config('car_scraping.state_filter');
         }
-        
+
         $url .= "/$brand/$model?pag=$page";
 
         return $url;

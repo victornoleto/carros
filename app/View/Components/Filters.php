@@ -11,7 +11,9 @@ use Illuminate\View\Component;
 class Filters extends Component
 {
     public array $states;
+
     public array $cities;
+
     public array $models;
 
     /**
@@ -33,14 +35,14 @@ class Filters extends Component
                 $query->whereIn('state', request()->get('states'));
             })
             ->get()
-                ->map(function ($item) {
-                    return [
-                        'state' => $item->state,
-                        'name' => $item->city,
-                        'text' => $item->city . '/' . $item->state
-                    ];
-                })
-                ->toArray();
+            ->map(function ($item) {
+                return [
+                    'state' => $item->state,
+                    'name' => $item->city,
+                    'text' => $item->city.'/'.$item->state,
+                ];
+            })
+            ->toArray();
 
         $this->models = Car::query()
             ->groupBy('brand', 'model')
@@ -52,7 +54,7 @@ class Filters extends Component
                 return [
                     'brand' => $item->brand,
                     'name' => $item->model,
-                    'text' => $item->brand . ' ' . $item->model
+                    'text' => $item->brand.' '.$item->model,
                 ];
             })
             ->toArray();

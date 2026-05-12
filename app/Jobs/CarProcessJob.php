@@ -18,9 +18,8 @@ use Illuminate\Validation\Rule;
 
 abstract class CarProcessJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-
     use CarProviderTrait;
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public CarProviderEnum $provider;
 
@@ -32,11 +31,11 @@ abstract class CarProcessJob implements ShouldQueue
         public string|array $data,
     ) {
         $this->setProviderByClassName();
-        
+
         $this->processService = $this->provider->getProcessService([
             'brand' => $this->brand,
             'model' => $this->model,
-            'data' => $data
+            'data' => $data,
         ]);
     }
 
@@ -53,7 +52,7 @@ abstract class CarProcessJob implements ShouldQueue
             $car = Car::updateOrCreate(
                 [
                     'provider' => $data['provider'],
-                    'provider_id' => $data['provider_id']
+                    'provider_id' => $data['provider_id'],
                 ],
                 $data
             );
@@ -68,7 +67,7 @@ abstract class CarProcessJob implements ShouldQueue
         } catch (\Exception $e) {
 
             if ($e instanceof CarProcessIgnoreException) {
-                
+
                 $this->log('Ignored: '.$e->getMessage(), 'warning');
 
                 return;
@@ -102,7 +101,7 @@ abstract class CarProcessJob implements ShouldQueue
             'odometer' => ['required', 'integer', 'min:0', 'max:'.$maxOdometer],
             'state' => ['required', 'string', 'max:2'],
             'city' => ['required', 'string'],
-            'provider' => ['required', 'string', Rule::in(CarProviderEnum::getValues())],
+            'provider' => ['required', 'string', Rule::in(CarProviderEnum::values())],
             'provider_id' => ['required', 'string'],
             'provider_updated_at' => ['required', 'date_format:Y-m-d H:i:s'],
             'provider_url' => ['nullable', 'string'],
@@ -128,6 +127,6 @@ abstract class CarProcessJob implements ShouldQueue
             $message
         );
 
-        Log::$channel($logMessage);
+        Log::log($channel, $logMessage);
     }
 }

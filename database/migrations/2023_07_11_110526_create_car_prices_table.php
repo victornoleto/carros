@@ -5,7 +5,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -14,9 +15,9 @@ return new class extends Migration {
         Schema::create('car_prices', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Car::class)->constrained();
-            $table->float('price');
-            $table->float('old_price');
-            $table->float('diff');
+            $table->decimal('price', 12, 2);
+            $table->decimal('old_price', 12, 2);
+            $table->decimal('diff', 12, 2);
             $table->timestamp('created_at');
             $table->timestamp('provider_updated_at');
         });

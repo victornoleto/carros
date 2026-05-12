@@ -18,8 +18,8 @@ abstract class CarSyncService
     public function __construct()
     {
         $this->httpClient = new Client([
-            RequestOptions::VERIFY => false,
-            RequestOptions::TIMEOUT => 60
+            RequestOptions::VERIFY => config('car_scraping.verify_tls', true),
+            RequestOptions::TIMEOUT => config('car_scraping.timeout', 60),
         ]);
 
         $this->setProviderByClassName();
@@ -33,7 +33,7 @@ abstract class CarSyncService
     {
         $url = $this->getPageRequestUrl($brand, $model, $page);
 
-        $fullUrl = $this->provider->getUrl() . $url;
+        $fullUrl = $this->provider->getUrl().$url;
 
         $options = $this->getPageRequestOptions($brand, $model, $page);
 
@@ -47,7 +47,7 @@ abstract class CarSyncService
     public function getPageRequestOptions(string $brand, string $model, int $page = 1): array
     {
         return [
-            'headers' => $this->getPageRequestHeaders($brand, $model, $page)
+            'headers' => $this->getPageRequestHeaders($brand, $model, $page),
         ];
     }
 
@@ -67,23 +67,23 @@ abstract class CarSyncService
         $unprocessedResults = $this->getPageUnprocessedResults($pageResults);
 
         $results = [];
-        
+
         foreach ($unprocessedResults as $unprocessedResult) {
-            
+
             $row = [
-                'unprocessedResult' => $unprocessedResult
+                'unprocessedResult' => $unprocessedResult,
             ];
-            
+
             try {
-                
+
                 $processService = $this->provider->getProcessService([
                     'brand' => $brand,
                     'model' => $model,
                     'data' => $unprocessedResult,
                 ]);
-        
+
                 $row['result'] = $processService->getData();
-                
+
             } catch (\Exception $e) {
 
                 $row['error'] = $e->getMessage();

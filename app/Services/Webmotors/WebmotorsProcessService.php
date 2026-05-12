@@ -15,7 +15,7 @@ class WebmotorsProcessService extends CarProcessService
         parent::__construct($brand, $model);
     }
 
-    public function getVersion(): string|null
+    public function getVersion(): ?string
     {
         return $this->data['version'];
     }
@@ -25,7 +25,7 @@ class WebmotorsProcessService extends CarProcessService
         return explode('/', $this->data['year'])[0];
     }
 
-    public function getYearModel(): int|null
+    public function getYearModel(): ?int
     {
         return explode('/', $this->data['year'])[1];
     }
@@ -72,7 +72,7 @@ class WebmotorsProcessService extends CarProcessService
         return now();
     }
 
-    public function getProviderUrl(): string|null
+    public function getProviderUrl(): ?string
     {
         $year = $this->getYear();
 
@@ -104,7 +104,7 @@ class WebmotorsProcessService extends CarProcessService
 
         $location = $this->data['location'];
 
-        list($city, $state) = explode(' - ', $location);
+        [$city, $state] = explode(' - ', $location);
 
         return [$state, $city];
     }

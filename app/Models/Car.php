@@ -2,8 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\CarProviderEnum;
-use App\Jobs\Olx\OlxUpdateJob;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -18,7 +16,10 @@ class Car extends Model
     protected $guarded = [];
 
     protected $casts = [
-        'provider_updated_at' => 'datetime'
+        'active' => 'boolean',
+        'banned' => 'boolean',
+        'price' => 'decimal:2',
+        'provider_updated_at' => 'datetime',
     ];
 
     public static function boot()
@@ -37,17 +38,18 @@ class Car extends Model
                     'old_price' => $oldPrice,
                     'diff' => $car->price - $oldPrice,
                     'provider_updated_at' => $car->provider_updated_at,
-                    'created_at' => now()
+                    'created_at' => now(),
                 ]);
             }
-            
+
         });
 
         static::saving(function (Car $car) {
 
-            foreach ($car->attributes as $key => $value) {
+            foreach (['brand', 'model', 'version', 'state', 'city'] as $key) {
+                $value = $car->attributes[$key] ?? null;
 
-                if (is_string($value) && $key != 'provider_id') {
+                if (is_string($value)) {
                     $car->$key = mb_strtolower($value);
                 }
             }
@@ -62,10 +64,10 @@ class Car extends Model
             ->where([
                 'brand' => $brand,
                 'model' => $model,
-                'active' => true
+                'active' => true,
             ])
             ->update([
-                'active' => false
+                'active' => false,
             ]);
     }
 
@@ -99,18 +101,18 @@ class Car extends Model
             DB::raw($odometerRounded)
         );
 
-        $sql = "
+        $sql = '
         select *
         from (
             select
                 *,
                 rank() over(partition by brand, model, version, price, odometer order by year desc) as rank2
             from (
-                ".self::getEloquentSqlWithBindings($query)."
+                '.self::getEloquentSqlWithBindings($query).'
             ) q
             where q.rank = 1
         ) q2
-        where q2.rank2 = 1";
+        where q2.rank2 = 1';
 
         $data = DB::select($sql);
 
@@ -120,10 +122,10 @@ class Car extends Model
     public function scopeSearch($query, Request $request): void
     {
         $query
-            ->whereRaw('active is true')
-            ->whereRaw('banned is false');
-            //->where('price', '>', 1300)
-            //->where('odometer', '>', 1000);
+            ->where('active', true)
+            ->where('banned', false);
+        // ->where('price', '>', 1300)
+        // ->where('odometer', '>', 1000);
 
         if (is_numeric($request->year_min)) {
             $query->where('year', '>=', $request->year_min);
@@ -163,15 +165,19 @@ class Car extends Model
 
                 foreach ($cities as $text) {
 
-                    /* list($city, $state) = explode('/', $text);
+                    [$city, $state] = array_pad(explode('/', $text, 2), 2, null);
+
+                    if (! $city || ! $state) {
+                        continue;
+                    }
 
                     $query->orWhere(function ($q) use ($city, $state) {
                         $q->where('city', $city)->where('state', $state);
-                    }); */
+                    });
                 }
 
             });
-            
+
         });
 
         $query->when(count($models) > 0, function ($query) use ($models) {
@@ -180,10 +186,14 @@ class Car extends Model
 
                 foreach ($models as $text) {
 
-                    list($brand, $model) = explode(' ', $text);
+                    [$brand, $model] = array_pad(explode(' ', $text, 2), 2, null);
+
+                    if (! $brand || ! $model) {
+                        continue;
+                    }
 
                     $query->orWhere(function ($q) use ($brand, $model) {
-                        $q->where('brand', $brand)->whereRaw("model = '$model'");
+                        $q->where('brand', $brand)->where('model', $model);
                     });
                 }
 
@@ -197,6 +207,7 @@ class Car extends Model
             str_replace('?', '%s', $query->toSql()),
             array_map(function ($binding) {
                 $binding = addslashes($binding);
+
                 return is_numeric($binding) ? $binding : "'{$binding}'";
             }, $query->getBindings())
         );

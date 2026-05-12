@@ -40,11 +40,11 @@ abstract class CarProcessService
         return $data;
     }
 
-    abstract public function getVersion(): string|null;
+    abstract public function getVersion(): ?string;
 
     abstract public function getYear(): int;
 
-    abstract public function getYearModel(): int|null;
+    abstract public function getYearModel(): ?int;
 
     abstract public function getPrice(): float;
 
@@ -58,5 +58,5 @@ abstract class CarProcessService
 
     abstract public function getProviderUpdatedAt(): Carbon;
 
-    abstract public function getProviderUrl(): string|null;
+    abstract public function getProviderUrl(): ?string;
 }

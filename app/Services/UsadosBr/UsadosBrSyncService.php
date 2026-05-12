@@ -24,7 +24,7 @@ class UsadosBrSyncService extends CarSyncService
 
     public function getPageRequestUrl(string $brand, string $model, int $page = 1): string
     {
-        $filter = env('STATE_FILTER', 'br');
+        $filter = config('car_scraping.state_filter') ?: 'br';
 
         $url = "/carros/$filter/$brand/$model";
 

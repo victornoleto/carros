@@ -13,16 +13,16 @@ class WebmotorsSyncService extends CarSyncService
 
     public function getPageRequestOptions(string $brand, string $model, int $page = 1): array
     {
-        $filter = env('STATE_FILTER');
+        $filter = config('car_scraping.state_filter');
 
         $filter = empty($filter) ? 'estoque' : $filter;
 
         return [
             'query' => [
-                'url' => $this->provider->getUrl() . "/carros/$filter/$brand/$model",
-                'actualPage' => $page
+                'url' => $this->provider->getUrl()."/carros/$filter/$brand/$model",
+                'actualPage' => $page,
             ],
-            'headers' => $this->getPageRequestHeaders($brand, $model, $page)
+            'headers' => $this->getPageRequestHeaders($brand, $model, $page),
         ];
     }
 

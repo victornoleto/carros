@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Enums;
 
@@ -22,48 +24,33 @@ use App\Services\UsadosBr\UsadosBrProcessService;
 use App\Services\UsadosBr\UsadosBrSyncService;
 use App\Services\Webmotors\WebmotorsProcessService;
 use App\Services\Webmotors\WebmotorsSyncService;
-use BenSampo\Enum\Enum;
 
-final class CarProviderEnum extends Enum
+enum CarProviderEnum: string
 {
-    const OLX = 'olx';
+    case OLX = 'olx';
+    case WEBMOTORS = 'webmotors';
+    case ICARROS = 'icarros';
+    case USADOSBR = 'usadosbr';
 
-    const WEBMOTORS = 'webmotors';
+    public static function values(): array
+    {
+        return array_column(self::cases(), 'value');
+    }
 
-    const ICARROS = 'icarros';
+    public static function getValues(): array
+    {
+        return self::values();
+    }
 
-    const USADOSBR = 'usadosbr';
+    public static function getInstances(): array
+    {
+        return self::cases();
+    }
 
-    protected $config = [
-        self::OLX => [
-            'url' => 'https://www.olx.com.br',
-            'syncService' => OlxSyncService::class,
-            'syncJob' => OlxSyncJob::class,
-            'processService' => OlxProcessService::class,
-            'processJob' => OlxProcessJob::class,
-        ],
-        self::WEBMOTORS => [
-            'url' => 'https://www.webmotors.com.br',
-            'syncService' => WebmotorsSyncService::class,
-            'syncJob' => WebmotorsSyncJob::class,
-            'processService' => WebmotorsProcessService::class,
-            'processJob' => WebmotorsProcessJob::class,
-        ],
-        self::ICARROS => [
-            'url' => 'https://www.icarros.com.br',
-            'syncService' => iCarrosSyncService::class,
-            'syncJob' => iCarrosSyncJob::class,
-            'processService' => iCarrosProcessService::class,
-            'processJob' => iCarrosProcessJob::class,
-        ],
-        self::USADOSBR => [
-            'url' => 'https://www.usadosbr.com',
-            'syncService' => UsadosBrSyncService::class,
-            'syncJob' => UsadosBrSyncJob::class,
-            'processService' => UsadosBrProcessService::class,
-            'processJob' => UsadosBrProcessJob::class,
-        ],
-    ];
+    public static function fromValue(string $value): self
+    {
+        return self::from($value);
+    }
 
     public function getSyncService(array $parameters = []): CarSyncService
     {
@@ -87,33 +74,49 @@ final class CarProviderEnum extends Enum
 
     public function getUrl(): string
     {
-        switch ($this->value) {
-            
-            case self::OLX:
-                return 'https://www.olx.com.br';
-            
-            case self::WEBMOTORS:
-                return 'https://www.webmotors.com.br';
-            
-            case self::ICARROS:
-                return 'https://www.icarros.com.br';
-
-            case self::USADOSBR:
-                return 'https://www.usadosbr.com';
-
-            default:
-                throw new \Exception("Server url not found for $this->value provider.");
-        }
+        return $this->config()['url'];
     }
 
     private function getClass(string $key, array $parameters = []): mixed
     {
-        $config = $this->config[$this->value];
-
-        $className = $config[$key];
+        $className = $this->config()[$key];
 
         $class = app($className, $parameters);
 
         return $class;
+    }
+
+    private function config(): array
+    {
+        return match ($this) {
+            self::OLX => [
+                'url' => 'https://www.olx.com.br',
+                'syncService' => OlxSyncService::class,
+                'syncJob' => OlxSyncJob::class,
+                'processService' => OlxProcessService::class,
+                'processJob' => OlxProcessJob::class,
+            ],
+            self::WEBMOTORS => [
+                'url' => 'https://www.webmotors.com.br',
+                'syncService' => WebmotorsSyncService::class,
+                'syncJob' => WebmotorsSyncJob::class,
+                'processService' => WebmotorsProcessService::class,
+                'processJob' => WebmotorsProcessJob::class,
+            ],
+            self::ICARROS => [
+                'url' => 'https://www.icarros.com.br',
+                'syncService' => iCarrosSyncService::class,
+                'syncJob' => iCarrosSyncJob::class,
+                'processService' => iCarrosProcessService::class,
+                'processJob' => iCarrosProcessJob::class,
+            ],
+            self::USADOSBR => [
+                'url' => 'https://www.usadosbr.com',
+                'syncService' => UsadosBrSyncService::class,
+                'syncJob' => UsadosBrSyncJob::class,
+                'processService' => UsadosBrProcessService::class,
+                'processJob' => UsadosBrProcessJob::class,
+            ],
+        };
     }
 }

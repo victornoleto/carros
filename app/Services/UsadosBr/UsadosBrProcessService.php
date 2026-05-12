@@ -25,7 +25,7 @@ class UsadosBrProcessService extends CarProcessService
         return parent::getData();
     }
 
-    public function getVersion(): string|null
+    public function getVersion(): ?string
     {
         $text = $this->node->filter('.css-kufh1x')->text();
 
@@ -37,7 +37,7 @@ class UsadosBrProcessService extends CarProcessService
         return $this->getYearAndYearModel()[0];
     }
 
-    public function getYearModel(): int|null
+    public function getYearModel(): ?int
     {
         return $this->getYearAndYearModel()[0];
     }
@@ -61,10 +61,10 @@ class UsadosBrProcessService extends CarProcessService
     {
         $text = $this->node->filter('.css-ljtdvh')
             ->children()
-                ->eq(1)->text();
+            ->eq(1)->text();
 
         $text = str_replace(' KM', '', $text);
-        
+
         $text = str_replace('.', '', $text);
 
         $odometer = intval($text);
@@ -103,7 +103,7 @@ class UsadosBrProcessService extends CarProcessService
     {
         $text = $this->node->filter('.css-0 .css-30myhr:first-child')->text();
 
-        list($city, $state) = explode(' - ', $text);
+        [$city, $state] = explode(' - ', $text);
 
         $parts = [$city, $state];
 
@@ -115,13 +115,13 @@ class UsadosBrProcessService extends CarProcessService
 
         $text = $this->node->filter('.css-ljtdvh')
             ->children()
-                ->eq(0)->text();
+            ->eq(0)->text();
 
-        list($year, $yearModel) = explode('/', $text);
+        [$year, $yearModel] = explode('/', $text);
 
         return [
             intval($year),
-            intval($yearModel)
+            intval($yearModel),
         ];
     }
 }

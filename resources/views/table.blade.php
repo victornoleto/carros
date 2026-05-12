@@ -35,6 +35,10 @@
             </table>
 
         </div>
+
+        <div class="mt-3">
+            {{ $cars->links() }}
+        </div>
     
         <script src="{{ asset('assets/js/sortable.js') }}"></script>
 

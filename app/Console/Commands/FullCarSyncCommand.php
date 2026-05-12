@@ -23,7 +23,7 @@ class FullCarSyncCommand extends Command
             'dodge ram',
             'volkswagen amarok',
 
-            //carros "populares"
+            // carros "populares"
             'fiat argo',
             'ford ka',
             'chevrolet onix',
@@ -60,12 +60,12 @@ class FullCarSyncCommand extends Command
 
         foreach ($list as $item) {
 
-            list($brand, $model) = explode(' ', $item);
+            [$brand, $model] = explode(' ', $item);
 
             Artisan::call('cars:sync', [
                 'brand' => $brand,
                 'model' => $model,
-                //'provider' => 'olx'
+                // 'provider' => 'olx'
             ]);
         }
     }

@@ -14,9 +14,8 @@ use Illuminate\Support\Facades\Log;
 
 abstract class CarSyncJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-
     use CarProviderTrait;
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $tries = 3;
 
@@ -46,45 +45,45 @@ abstract class CarSyncJob implements ShouldQueue
             $this->handleError($e);
         }
     }
-    
+
     private function process(): void
     {
-        //$this->log('Starting');
-    
+        // $this->log('Starting');
+
         if ($this->page == 1 && $this->recursive) {
             Car::disable($this->provider->value, $this->brand, $this->model);
         }
-    
+
         $syncService = $this->provider->getSyncService();
-    
+
         $startTime = microtime(true);
-    
+
         $pageResults = $syncService->getPageEntireResults($this->brand, $this->model, $this->page);
-    
+
         $unprocessedResults = $syncService->getPageUnprocessedResults($pageResults);
-        
+
         $elapsedTime = round(microtime(true) - $startTime, 2);
-    
+
         $this->log(sprintf('%s ads found in %s seconds', count($unprocessedResults), $elapsedTime));
-    
+
         foreach ($unprocessedResults as $unprocessedResult) {
-    
+
             $processJob = $this->provider->getProcessJob([
                 'brand' => $this->brand,
                 'model' => $this->model,
                 'data' => $unprocessedResult,
             ]);
-    
+
             dispatch($processJob)->onQueue('cars-process');
         }
-    
-        if (count($unprocessedResults) > 0 && $this->recursive) {
-    
-            if ($this->provider->value != CarProviderEnum::OLX) {
+
+        if (count($unprocessedResults) > 0 && $this->recursive && $this->page < config('car_scraping.max_pages', 50)) {
+
+            if ($this->provider !== CarProviderEnum::OLX) {
             }
-            
+
             sleep(1);
-                
+
             self::dispatch($this->brand, $this->model, $this->page + 1, true)->onQueue('cars-sync');
         }
     }
@@ -96,9 +95,9 @@ abstract class CarSyncJob implements ShouldQueue
         if ($this->attempts() < $this->tries) {
 
             $this->log(sprintf('Retrying in %s seconds', $this->backoff), 'error');
-                
+
             $this->release($this->backoff);
-        
+
         } else {
             $this->log('Max attempts reached', 'error');
         }
@@ -116,6 +115,6 @@ abstract class CarSyncJob implements ShouldQueue
             $message
         );
 
-        Log::$channel($logMessage);
+        Log::log($channel, $logMessage);
     }
 }

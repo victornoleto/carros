@@ -23,7 +23,7 @@ trait CarProviderTrait
 
         if ($key == 'usados') {
             $key = 'usadosbr';
-        
+
         } elseif ($key == 'i') {
             $key = 'icarros';
         }

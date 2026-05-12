@@ -15,7 +15,7 @@ class WebmotorsSyncCommand extends Command
         $model = $this->argument('model');
         $page = $this->argument('page');
 
-        $service = new WebmotorsService();
+        $service = new WebmotorsService;
 
         $service->sync($brand, $model, $page);
     }

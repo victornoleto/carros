@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\CarProviderEnum;
 use Illuminate\Http\Response;
 
 class TestController extends Controller
@@ -13,10 +14,10 @@ class TestController extends Controller
 
             $page = request()->get('page', 1);
 
-            $enum = \App\Enums\CarProviderEnum::fromValue($provider);
-    
+            $enum = CarProviderEnum::fromValue($provider);
+
             $service = $enum->getSyncService();
-            
+
             $results = $service->getPageResults($brand, $model, $page);
 
             $results = array_filter($results, function ($result) {
@@ -26,7 +27,7 @@ class TestController extends Controller
             $results = array_map(function ($result) {
                 return $result['result'];
             }, $results);
-    
+
             return response($results);
 
         } catch (\Exception $e) {

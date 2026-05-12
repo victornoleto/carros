@@ -27,6 +27,24 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js" integrity="sha512-2ImtlRlf2VVmiGZsjm9bEyhjGW4dU7B6TNwh/hx/iSByxNENtj3WVE6o/9Lj4TJeVXPi4bnOIMXFIJJAeufa0A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
+    <nav class="navbar navbar-expand bg-white border-bottom px-4">
+        <a class="navbar-brand fw-bold" href="{{ url('/') }}">Carros</a>
+
+        <div class="navbar-nav ms-auto align-items-center gap-3">
+            <a class="nav-link" href="{{ url('/') }}">Dashboard</a>
+            <a class="nav-link" href="{{ url('/table') }}">Tabela</a>
+            @auth
+                <a class="nav-link" href="{{ route('alerts.index') }}">Alertas</a>
+                <form method="POST" action="{{ route('logout') }}" class="m-0">
+                    @csrf
+                    <button class="btn btn-sm btn-outline-dark" type="submit">Sair</button>
+                </form>
+            @else
+                <a class="btn btn-sm btn-dark" href="{{ route('login') }}">Entrar</a>
+            @endauth
+        </div>
+    </nav>
+
     <main id="{{ $id }}" class="">
 
        {{ $slot }}
