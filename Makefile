@@ -1,10 +1,12 @@
-.PHONY: help install env setup dev serve vite build test phpunit lint format migrate migrate-fresh queue tinker clear optimize routes views shell
+.PHONY: help install env setup dev serve vite build test phpunit lint format migrate migrate-fresh queue tinker clear optimize routes views proxy-install proxy proxy-health shell
 
 SHELL := /bin/bash
 PHP := php
 ARTISAN := $(PHP) artisan
 COMPOSER := composer
 NPM := npm
+PYTHON := .venv/bin/python
+PROXY_PORT ?= 8788
 
 help: ## Lista os comandos disponíveis
 	@awk 'BEGIN {FS = ":.*##"; printf "Comandos disponíveis:\n"} /^[a-zA-Z0-9_-]+:.*##/ {printf "  make %-16s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -73,6 +75,16 @@ routes: ## Lista rotas registradas
 views: ## Recompila views Blade
 	$(ARTISAN) view:clear
 	$(ARTISAN) view:cache
+
+proxy-install: ## Instala dependências Python do protected fetch proxy
+	python3 -m venv .venv
+	$(PYTHON) -m pip install -r services/protected_fetch_proxy/requirements.txt
+
+proxy: ## Roda o protected fetch proxy local para OLX
+	$(PYTHON) -m uvicorn services.protected_fetch_proxy.app:app --host 127.0.0.1 --port $(PROXY_PORT)
+
+proxy-health: ## Verifica healthcheck do protected fetch proxy local
+	curl http://127.0.0.1:$(PROXY_PORT)/health
 
 shell: ## Abre shell no diretório do projeto
 	$(SHELL)

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\CarProviderEnum;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\RequestOptions;
 
 abstract class CarSyncService
@@ -36,11 +37,77 @@ abstract class CarSyncService
 
         $options = $this->getPageRequestOptions($brand, $model, $page);
 
-        $response = $this->httpClient->request('get', $fullUrl, $options);
+        if ($this->shouldUseProxy()) {
+            return $this->getPageEntireResultsViaProxy($fullUrl, $options);
+        }
+
+        try {
+            $response = $this->httpClient->request('get', $fullUrl, $options);
+        } catch (RequestException $e) {
+            if ($e->getResponse()?->getStatusCode() !== 403) {
+                throw $e;
+            }
+
+            return $this->getPageEntireResultsViaProxy($fullUrl, $options);
+        }
 
         $contents = $response->getBody()->getContents();
 
         return $contents;
+    }
+
+    protected function getPageEntireResultsViaProxy(string $fullUrl, array $options): string
+    {
+        $proxyUrl = config('car_scraping.proxy_url');
+
+        $proxyToken = config('car_scraping.proxy_token');
+
+        if (! $proxyUrl || ! $proxyToken) {
+            throw new \RuntimeException('Request blocked with 403 and CAR_SCRAPING_PROXY_URL/CAR_SCRAPING_PROXY_TOKEN are not configured');
+        }
+
+        $url = $this->buildUrlWithQuery($fullUrl, $options['query'] ?? []);
+
+        $response = $this->httpClient->request('post', $proxyUrl, [
+            'headers' => [
+                'accept' => 'application/json',
+                'content-type' => 'application/json',
+                'x-proxy-token' => $proxyToken,
+            ],
+            'json' => [
+                'url' => $url,
+                'headers' => $options['headers'] ?? [],
+                'timeout_seconds' => config('car_scraping.timeout', 60),
+            ],
+        ]);
+
+        $payload = json_decode($response->getBody()->getContents(), true);
+
+        if (($payload['status_code'] ?? 0) >= 400) {
+            throw new \RuntimeException('Proxy upstream returned HTTP '.$payload['status_code']);
+        }
+
+        $body = $payload['body'] ?? '';
+
+        return is_string($body) ? $body : json_encode($body, JSON_THROW_ON_ERROR);
+    }
+
+    private function shouldUseProxy(): bool
+    {
+        $providers = config('car_scraping.proxy_providers', []);
+
+        return in_array($this->provider->value, $providers, true);
+    }
+
+    private function buildUrlWithQuery(string $url, array $query): string
+    {
+        if (empty($query)) {
+            return $url;
+        }
+
+        $separator = str_contains($url, '?') ? '&' : '?';
+
+        return $url.$separator.http_build_query($query);
     }
 
     public function getPageRequestOptions(string $brand, string $model, int $page = 1): array

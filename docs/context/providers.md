@@ -33,3 +33,4 @@ Cada anuncio processado deve produzir:
 - Dados textuais de busca sao normalizados para lowercase.
 - URL do provider nao deve ser normalizada, pois pode ser case-sensitive.
 - TLS fica ativo por padrao nas requisicoes HTTP.
+- OLX pode exigir o `Protected Fetch Proxy` local quando o request direto retornar `403`; veja `docs/context/protected-fetch-proxy.md`.

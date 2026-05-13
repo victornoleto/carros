@@ -79,10 +79,7 @@ abstract class CarSyncJob implements ShouldQueue
 
         if (count($unprocessedResults) > 0 && $this->recursive && $this->page < config('car_scraping.max_pages', 50)) {
 
-            if ($this->provider !== CarProviderEnum::OLX) {
-            }
-
-            sleep(1);
+            sleep(config('car_scraping.page_sleep_seconds', 1));
 
             self::dispatch($this->brand, $this->model, $this->page + 1, true)->onQueue('cars-sync');
         }
