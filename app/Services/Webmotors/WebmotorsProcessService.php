@@ -23,39 +23,27 @@ class WebmotorsProcessService extends CarProcessService
 
     public function getVersion(): ?string
     {
-        return $this->data['version'];
+        return $this->data['Specification']['Version']['Value'] ?? null;
     }
 
     public function getYear(): int
     {
-        return explode('/', $this->data['year'])[0];
+        return (int) $this->data['Specification']['YearFabrication'];
     }
 
     public function getYearModel(): ?int
     {
-        return explode('/', $this->data['year'])[1];
+        return (int) $this->data['Specification']['YearModel'];
     }
 
     public function getPrice(): float
     {
-        $price = $this->data['price'];
-
-        $price = str_replace('R$ ', '', $price);
-
-        $price = str_replace('.', '', $price);
-
-        $price = str_replace(',', '.', $price);
-
-        return floatval($price);
+        return (float) $this->data['Prices']['Price'];
     }
 
     public function getOdometer(): int
     {
-        $odometer = $this->data['travelledDistance'];
-
-        $odometer = str_replace(' km', '', $odometer);
-
-        return intval($odometer);
+        return (int) $this->data['Specification']['Odometer'];
     }
 
     public function getState(): string
@@ -70,7 +58,7 @@ class WebmotorsProcessService extends CarProcessService
 
     public function getProviderId(): string
     {
-        return $this->data['id'];
+        return (string) $this->data['UniqueId'];
     }
 
     public function getProviderUpdatedAt(): Carbon
@@ -107,11 +95,12 @@ class WebmotorsProcessService extends CarProcessService
 
     private function getStateAndCity(): array
     {
+        $city = $this->data['Seller']['City'];
 
-        $location = $this->data['location'];
+        $state = $this->data['Seller']['State'];
 
-        [$city, $state] = explode(' - ', $location);
+        preg_match('/\(([A-Z]{2})\)$/', $state, $matches);
 
-        return [$state, $city];
+        return [$matches[1] ?? $state, $city];
     }
 }

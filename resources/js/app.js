@@ -65,8 +65,19 @@ function loadSelect2($select, customOptions) {
 function initFilters() {
     const $filters = $('#filters');
 
+    initRangeFilters($filters);
+
+    $filters.on('change', '.filter-chip input', function () {
+        $(this).closest('.filter-chip').toggleClass('is-active', this.checked);
+    });
+
     $filters.on('click', '#clear-filters-button', function () {
-        $filters.find('input').val('');
+        $filters.find('input[type="checkbox"]').prop('checked', false).trigger('change');
+        $filters.find('input[type="range"]').each(function () {
+            const $input = $(this);
+            $input.val($input.is('[data-range-min]') ? $input.attr('min') : $input.attr('max'));
+        });
+        initRangeFilters($filters);
         $filters.find('select').each(function () {
             $(this).val('').trigger('change');
         });
@@ -95,6 +106,47 @@ function initFilters() {
 
     $('#page-table').on('click', '#filters-button', function () {
         $(this).closest('form').trigger('submit');
+    });
+}
+
+function initRangeFilters($root) {
+    $root.find('[data-range-filter]').each(function () {
+        const $range = $(this);
+        const $min = $range.find('[data-range-min]');
+        const $max = $range.find('[data-range-max]');
+        const $minLabel = $range.find('[data-range-min-label]');
+        const $maxLabel = $range.find('[data-range-max-label]');
+        const $track = $range.find('.filter-range__track');
+        const prefix = $range.data('prefix') || '';
+        const suffix = $range.data('suffix') || '';
+
+        const render = () => {
+            let minValue = Number($min.val());
+            let maxValue = Number($max.val());
+
+            if (minValue > maxValue) {
+                if (document.activeElement === $min[0]) {
+                    maxValue = minValue;
+                    $max.val(maxValue);
+                } else {
+                    minValue = maxValue;
+                    $min.val(minValue);
+                }
+            }
+
+            const min = Number($min.attr('min'));
+            const max = Number($min.attr('max'));
+            const left = ((minValue - min) / (max - min)) * 100;
+            const right = 100 - (((maxValue - min) / (max - min)) * 100);
+
+            $track.css({ '--range-left': `${left}%`, '--range-right': `${right}%` });
+            $minLabel.text(`${prefix}${minValue}${suffix}`);
+            $maxLabel.text(`${prefix}${maxValue}${suffix}`);
+        };
+
+        $min.off('input.rangeFilter change.rangeFilter').on('input.rangeFilter change.rangeFilter', render);
+        $max.off('input.rangeFilter change.rangeFilter').on('input.rangeFilter change.rangeFilter', render);
+        render();
     });
 }
 

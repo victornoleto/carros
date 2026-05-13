@@ -17,11 +17,18 @@ class Filters extends Component
 
     public array $models;
 
+    public int $count;
+
+    public int $total;
+
     /**
      * Create a new component instance.
      */
-    public function __construct()
+    public function __construct(int $count = 0, int $total = 0)
     {
+        $this->count = $count;
+        $this->total = $total;
+
         try {
             $this->states = array_column(
                 DB::select('select distinct state from cars order by state'),

@@ -6,20 +6,31 @@
         $middle = intdiv($count, 2);
         return $count % 2 ? $values[$middle] : (($values[$middle - 1] + $values[$middle]) / 2);
     };
+    $percentile = function ($values, float $percentile) {
+        $values = collect($values)->filter(fn ($value) => is_numeric($value))->sort()->values();
+        $count = $values->count();
+        if ($count === 0) return 0;
+        $index = ($count - 1) * $percentile;
+        $lower = (int) floor($index);
+        $upper = (int) ceil($index);
+        if ($lower === $upper) return $values[$lower];
+        return $values[$lower] + (($values[$upper] - $values[$lower]) * ($index - $lower));
+    };
     $medianPrice = max(1, $median($cars->pluck('price')));
     $medianKm = max(1, $median($cars->pluck('odometer')));
-    $scored = $cars->map(function ($car) use ($medianPrice, $medianKm) {
-        $age = max(0, now()->year - (int) $car->year);
-        $fair = max($medianPrice * pow(0.94, $age) + (($medianKm - $car->odometer) * 0.08), $medianPrice * 0.42);
+    $curveBand = 0.10;
+    $curvePrice = fn ($km) => max(25000, 145000 * exp(-min(300000, max(0, (float) $km)) / 200000));
+    $scored = $cars->map(function ($car) use ($curvePrice, $curveBand) {
+        $fair = $curvePrice($car->odometer);
         $score = ($fair - $car->price) / max(1, $fair);
         $car->fair_price = $fair;
         $car->curve_score = $score;
-        $car->curve_tone = $score >= 0.04 ? 'good' : ($score <= -0.04 ? 'warn' : 'neutral');
+        $car->curve_tone = $score >= $curveBand ? 'good' : ($score <= -$curveBand ? 'warn' : 'neutral');
         return $car;
     })->sortByDesc('curve_score')->values();
-    $good = $scored->where('curve_score', '>=', 0.04);
-    $fairCount = $scored->filter(fn ($car) => abs($car->curve_score) < 0.04)->count();
-    $highCount = $scored->where('curve_score', '<=', -0.04)->count();
+    $good = $scored->where('curve_score', '>=', $curveBand);
+    $fairCount = $scored->filter(fn ($car) => abs($car->curve_score) < $curveBand)->count();
+    $highCount = $scored->where('curve_score', '<=', -$curveBand)->count();
     $topDeals = $good->take(6);
     $models = $scored->groupBy(fn ($car) => mb_strtoupper($car->brand).' '.mb_strtoupper($car->model))->take(4);
 @endphp
@@ -68,54 +79,125 @@
 
     <section class="dashboard-grid">
         <aside class="side-panel">
-            <x-filters buttonType="submit" />
+            <x-filters buttonType="submit" :count="$scored->count()" :total="$totalCars ?? $scored->count()" />
         </aside>
 
         <div class="plot-area">
             <div class="card-curva scatter-wrap">
-                <svg width="760" height="460" viewBox="0 0 760 460" role="img" aria-label="Gráfico de preço por quilometragem">
+                <div class="scatter-chart">
+                <svg class="scatter-svg" width="760" height="460" viewBox="0 0 760 460" role="img" aria-label="Gráfico de preço por quilometragem">
                     @php
-                        $padL = 56; $padT = 24; $plotW = 680; $plotH = 392;
-                        $maxKm = max(220000, $scored->max('odometer') ?: 220000);
-                        $maxPrice = max(170000, $scored->max('price') ?: 170000);
-                        $xScale = fn ($km) => $padL + min(1, max(0, $km / $maxKm)) * $plotW;
-                        $yScale = fn ($price) => $padT + (1 - min(1, max(0, $price / $maxPrice))) * $plotH;
-                        $curve = collect(range(0, 40))->map(function ($i) use ($xScale, $yScale, $maxKm, $medianPrice) {
-                            $km = $maxKm * ($i / 40);
-                            $price = max($medianPrice * 0.42, $medianPrice * exp(-$km / 200000));
+                        $padL = 56; $padR = 24; $padT = 24; $padB = 44;
+                        $plotW = 760 - $padL - $padR;
+                        $plotH = 460 - $padT - $padB;
+                        $roundUp = fn ($value, $step) => (int) ceil(max(1, (float) $value) / $step) * $step;
+                        $actualMaxKm = (float) ($scored->max('odometer') ?: 0);
+                        $actualMaxPrice = (float) ($scored->max('price') ?: 0);
+                        $robustMaxKm = max($medianKm * 2.5, $percentile($scored->pluck('odometer'), 0.95) * 1.25, 220000);
+                        $robustMaxPrice = max($medianPrice * 5, $percentile($scored->pluck('price'), 0.95) * 1.25, 170000);
+                        $xMin = 0;
+                        $xMax = $roundUp(min(max($actualMaxKm, 220000), $robustMaxKm), 50000);
+                        $yMin = 25000;
+                        $yMax = $roundUp(min(max($actualMaxPrice, 170000), $robustMaxPrice), 50000);
+                        $xHasOverflow = $actualMaxKm > $xMax;
+                        $yHasOverflow = $actualMaxPrice > $yMax;
+                        $xTicks = collect(range(0, (int) ($xMax / 50000)))->map(fn ($i) => $i * 50000);
+                        $yTicks = collect(range(50000, $yMax, 50000));
+                        $xScale = fn ($km) => $padL + ((min($xMax, max($xMin, (float) $km)) - $xMin) / ($xMax - $xMin)) * $plotW;
+                        $yScale = fn ($price) => $padT + (1 - ((min($yMax, max($yMin, (float) $price)) - $yMin) / ($yMax - $yMin))) * $plotH;
+                        $curvePoints = collect(range(0, 40))->map(function ($i) use ($xScale, $yScale, $xMin, $xMax, $curvePrice) {
+                            $km = $xMin + (($xMax - $xMin) * ($i / 40));
+                            $price = $curvePrice($km);
                             return round($xScale($km), 1).' '.round($yScale($price), 1);
-                        })->implode(' L ');
+                        });
+                        $curve = $curvePoints->implode(' L ');
+                        $upperBand = $curvePoints->map(function ($point) {
+                            [$x, $y] = explode(' ', $point);
+                            return $x.' '.round(((float) $y) - 22, 1);
+                        });
+                        $lowerBand = $curvePoints->map(function ($point) {
+                            [$x, $y] = explode(' ', $point);
+                            return $x.' '.round(((float) $y) + 22, 1);
+                        });
+                        $band = 'M '.$upperBand->implode(' L ').' L '.$lowerBand->reverse()->implode(' L ').' Z';
                     @endphp
                     <rect x="{{ $padL }}" y="{{ $padT }}" width="{{ $plotW }}" height="{{ $plotH }}" fill="var(--surface-2)" />
-                    @foreach ([0, 50000, 100000, 150000, 200000] as $km)
+                    @foreach ($xTicks as $km)
                         <line x1="{{ $xScale($km) }}" x2="{{ $xScale($km) }}" y1="{{ $padT }}" y2="{{ $padT + $plotH }}" stroke="var(--line)" stroke-dasharray="2 4" />
-                        <text x="{{ $xScale($km) }}" y="438" font-size="10" fill="var(--mute)" text-anchor="middle" font-family="var(--font-mono)">{{ $km / 1000 }}k km</text>
+                        <text x="{{ $xScale($km) }}" y="{{ $padT + $plotH + 18 }}" font-size="10" fill="var(--mute)" text-anchor="middle" font-family="var(--font-mono)">{{ number_format($km / 1000, 0, ',', '.') }}k{{ $xHasOverflow && $loop->last ? '+' : '' }} km</text>
                     @endforeach
-                    @foreach ([40000, 80000, 120000, 160000] as $price)
+                    @foreach ($yTicks as $price)
                         <line x1="{{ $padL }}" x2="{{ $padL + $plotW }}" y1="{{ $yScale($price) }}" y2="{{ $yScale($price) }}" stroke="var(--line)" stroke-dasharray="2 4" />
-                        <text x="48" y="{{ $yScale($price) + 4 }}" font-size="10" fill="var(--mute)" text-anchor="end" font-family="var(--font-mono)">{{ $price / 1000 }}k</text>
+                        <text x="48" y="{{ $yScale($price) + 4 }}" font-size="10" fill="var(--mute)" text-anchor="end" font-family="var(--font-mono)">{{ number_format($price / 1000, 0, ',', '.') }}k{{ $yHasOverflow && $loop->last ? '+' : '' }}</text>
                     @endforeach
-                    <path d="M {{ $padL }} {{ $padT + $plotH }} L {{ $curve }} L {{ $padL + $plotW }} {{ $padT + $plotH }} Z" fill="rgba(26,108,77,0.04)" />
+                    <text x="{{ $padL }}" y="{{ $padT - 8 }}" font-size="10" fill="var(--mute)" font-family="var(--font-mono)">preço</text>
+                    <text x="{{ $padL + $plotW }}" y="{{ $padT + $plotH + 36 }}" font-size="10" fill="var(--mute)" text-anchor="end" font-family="var(--font-mono)">quilometragem</text>
+                    <path d="M {{ $padL }} {{ $yScale(40000) }} L {{ $curve }} L {{ $padL + $plotW }} {{ $yScale(40000) }} Z" fill="rgba(26,108,77,0.04)" />
+                    <path d="{{ $band }}" fill="rgba(20,17,13,0.05)" />
                     <path d="M {{ $curve }}" stroke="var(--mute)" stroke-width="1.3" fill="none" stroke-dasharray="4 3" />
-                    <text x="470" y="120" font-size="10" fill="var(--mute)" font-family="var(--font-mono)">curva mediana</text>
-                    @foreach ($scored->take(180) as $car)
+                    <text x="{{ $padL + ($plotW * 0.62) }}" y="{{ $yScale($curvePrice($xMax * 0.62)) - 8 }}" font-size="10" fill="var(--mute)" font-family="var(--font-mono)">curva mediana</text>
+                    @foreach ($scored as $car)
                         @php
                             $color = $car->curve_tone === 'good' ? '#1a6c4d' : ($car->curve_tone === 'warn' ? '#b04421' : '#8b7d5c');
                             $radius = abs($car->curve_score) >= 0.10 ? 4.5 : 3.5;
+                            $x = $xScale($car->odometer);
+                            $y = $yScale($car->price);
+                            $scoreLabel = $car->curve_score >= $curveBand ? '↓ -'.abs(round($car->curve_score * 100)).'% curva' : ($car->curve_score <= -$curveBand ? '↑ +'.abs(round($car->curve_score * 100)).'% curva' : 'na curva');
                         @endphp
-                        <a href="{{ route('provider.redirect', $car->id) }}" target="_blank">
-                            <circle cx="{{ $xScale($car->odometer) }}" cy="{{ $yScale($car->price) }}" r="{{ $radius }}" fill="{{ $color }}" opacity="0.85">
-                                <title>{{ mb_strtoupper($car->brand) }} {{ mb_strtoupper($car->model) }} · R$ {{ number_format($car->price, 0, ',', '.') }} · {{ number_format($car->odometer, 0, ',', '.') }} km</title>
-                            </circle>
-                        </a>
+                        @if ($x >= $padL && $x <= $padL + $plotW && $y >= $padT && $y <= $padT + $plotH)
+                            <a href="{{ route('provider.redirect', $car->id) }}" target="_blank">
+                                <g class="scatter-point"
+                                    data-x="{{ $x }}"
+                                    data-y="{{ $y }}"
+                                    data-title="{{ e(mb_strtoupper($car->brand).' '.mb_strtoupper($car->model)) }}"
+                                    data-badge="{{ e($scoreLabel) }}"
+                                    data-subtitle="{{ e(mb_strtoupper($car->version ?? '-').' · '.$car->year) }}"
+                                    data-price="{{ e(number_format($car->price, 0, ',', '.')) }}"
+                                    data-km="{{ e(number_format($car->odometer / 1000, 0, ',', '.').'k km') }}"
+                                    data-location="{{ e($car->city.'/'.$car->state) }}"
+                                    data-provider="{{ e($car->provider ?? '') }}">
+                                    <circle cx="{{ $x }}" cy="{{ $y }}" r="{{ $radius }}" fill="{{ $color }}" opacity="0.85">
+                                        <title>{{ mb_strtoupper($car->brand) }} {{ mb_strtoupper($car->model) }} · R$ {{ number_format($car->price, 0, ',', '.') }} · {{ number_format($car->odometer, 0, ',', '.') }} km</title>
+                                    </circle>
+                                    <circle cx="{{ $x }}" cy="{{ $y }}" r="{{ $radius + 6 }}" fill="{{ $color }}" opacity="0" />
+                                </g>
+                            </a>
+                        @endif
                     @endforeach
-                    <g transform="translate(516, 34)">
-                        <rect width="220" height="58" rx="6" fill="var(--surface)" stroke="var(--line)" />
-                        <circle cx="14" cy="18" r="4" fill="#1a6c4d" /><text x="24" y="22" font-size="11" fill="var(--ink)">abaixo da curva</text><text x="200" y="22" font-size="11" fill="var(--mute)" font-family="var(--font-mono)" text-anchor="end">{{ $good->count() }}</text>
-                        <circle cx="14" cy="36" r="4" fill="#8b7d5c" /><text x="24" y="40" font-size="11" fill="var(--ink)">na curva</text><text x="200" y="40" font-size="11" fill="var(--mute)" font-family="var(--font-mono)" text-anchor="end">{{ $fairCount }}</text>
-                        <circle cx="14" cy="50" r="4" fill="#b04421" /><text x="24" y="54" font-size="11" fill="var(--ink)">acima da curva</text><text x="200" y="54" font-size="11" fill="var(--mute)" font-family="var(--font-mono)" text-anchor="end">{{ $highCount }}</text>
-                    </g>
                 </svg>
+                <div class="scatter-hotspots" aria-hidden="true">
+                    @foreach ($scored as $car)
+                        @php
+                            $x = $xScale($car->odometer);
+                            $y = $yScale($car->price);
+                            $scoreLabel = $car->curve_score >= $curveBand ? '↓ -'.abs(round($car->curve_score * 100)).'% curva' : ($car->curve_score <= -$curveBand ? '↑ +'.abs(round($car->curve_score * 100)).'% curva' : 'na curva');
+                            $badgeTone = $car->curve_tone === 'warn' ? 'warn' : ($car->curve_tone === 'neutral' ? 'neutral' : 'good');
+                            $left = ($x / 760) * 100;
+                            $top = ($y / 460) * 100;
+                            $flipX = $x > 520;
+                            $flipY = $y > 300;
+                        @endphp
+                        @if ($x >= $padL && $x <= $padL + $plotW && $y >= $padT && $y <= $padT + $plotH)
+                            <a class="scatter-hotspot {{ $flipX ? 'scatter-hotspot--flip-x' : '' }} {{ $flipY ? 'scatter-hotspot--flip-y' : '' }}" style="left: {{ $left }}%; top: {{ $top }}%;" href="{{ route('provider.redirect', $car->id) }}" target="_blank" tabindex="-1">
+                                <div class="scatter-tooltip">
+                                    <div class="scatter-tooltip__head">
+                                        <strong>{{ mb_strtoupper($car->brand) }} {{ mb_strtoupper($car->model) }}</strong>
+                                        <span class="badge badge--{{ $badgeTone }} mono">{{ $scoreLabel }}</span>
+                                    </div>
+                                    <div class="scatter-tooltip__subtitle">{{ mb_strtoupper($car->version ?? '-') }} · {{ $car->year }}</div>
+                                    <div class="scatter-tooltip__main"><span>R$</span><strong>{{ number_format($car->price, 0, ',', '.') }}</strong><span class="mono">{{ number_format($car->odometer / 1000, 0, ',', '.') }}k km</span></div>
+                                    <div class="scatter-tooltip__foot"><span>{{ $car->city }}/{{ $car->state }}</span><span class="mono">{{ $car->provider ?? '' }}</span></div>
+                                </div>
+                            </a>
+                        @endif
+                    @endforeach
+                </div>
+                <div class="scatter-legend" aria-hidden="true">
+                    <div><span class="dot dot--good"></span><span>abaixo da curva</span><span class="mono">{{ $good->count() }}</span></div>
+                    <div><span class="dot dot--neutral"></span><span>na curva</span><span class="mono">{{ $fairCount }}</span></div>
+                    <div><span class="dot dot--warn"></span><span>acima da curva</span><span class="mono">{{ $highCount }}</span></div>
+                </div>
+                </div>
             </div>
 
             <div class="card-curva p-3">
@@ -125,7 +207,7 @@
                         <div>
                             <div class="d-flex justify-content-between align-items-baseline mb-2"><strong style="font-size:13px">{{ $name }}</strong><span class="mono t-mute" style="font-size:11px">{{ $items->count() }} anúncios</span></div>
                             <div class="hist">@foreach (range(0,17) as $i)<i style="left: {{ ($i / 18) * 100 }}%; height: {{ 8 + (($i * 7 + strlen($name)) % 24) }}px; {{ abs($i - 9) < 2 ? 'background: var(--ink)' : '' }}"></i>@endforeach</div>
-                            <div class="d-flex justify-content-between align-items-baseline mt-2"><span class="mono" style="font-size:12px">R$ {{ number_format($median($items->pluck('price')) / 1000, 1, ',', '.') }}k</span><span class="badge badge--good">{{ $items->where('curve_score', '>=', 0.04)->count() }} abaixo</span></div>
+                            <div class="d-flex justify-content-between align-items-baseline mt-2"><span class="mono" style="font-size:12px">R$ {{ number_format($median($items->pluck('price')) / 1000, 1, ',', '.') }}k</span><span class="badge badge--good">{{ $items->where('curve_score', '>=', $curveBand)->count() }} abaixo</span></div>
                         </div>
                     @empty
                         <div class="t-mute">Sem anúncios para os filtros atuais.</div>
