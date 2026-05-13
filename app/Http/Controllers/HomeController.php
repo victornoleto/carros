@@ -7,13 +7,35 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Throwable;
 
 class HomeController extends Controller
 {
     //
     public function dashboard(Request $request): View
     {
-        return view('dashboard');
+        try {
+            $cars = Car::search($request)
+                ->latest('provider_updated_at')
+                ->limit(220)
+                ->get();
+
+            $totalCars = Car::query()->where('active', true)->where('banned', false)->count();
+            $databaseUnavailable = false;
+        } catch (Throwable $exception) {
+            report($exception);
+
+            $cars = collect();
+            $totalCars = 0;
+            $databaseUnavailable = true;
+        }
+
+        return view('dashboard', [
+            'cars' => $cars,
+            'totalCars' => $totalCars,
+            'databaseUnavailable' => $databaseUnavailable,
+        ]);
     }
 
     public function chartsData(Request $request): JsonResponse
@@ -49,15 +71,36 @@ class HomeController extends Controller
 
     public function table(Request $request): View
     {
-        $query = Car::search($request)
-            ->orderBy('year', 'desc')
-            ->orderBy('price', 'asc')
-            ->orderBy('odometer', 'asc');
+        try {
+            $query = Car::search($request)
+                ->when($request->filled('q'), function ($query) use ($request) {
+                    $term = mb_strtolower((string) $request->string('q'));
 
-        $cars = $query->paginate(50)->withQueryString();
+                    $query->where(function ($query) use ($term) {
+                        $query->where('brand', 'like', "%{$term}%")
+                            ->orWhere('model', 'like', "%{$term}%")
+                            ->orWhere('version', 'like', "%{$term}%");
+                    });
+                })
+                ->latest('provider_updated_at')
+                ->orderBy('price', 'asc')
+                ->orderBy('odometer', 'asc');
+
+            $cars = $query->paginate(50)->withQueryString();
+            $databaseUnavailable = false;
+        } catch (Throwable $exception) {
+            report($exception);
+
+            $cars = new LengthAwarePaginator([], 0, 50, 1, [
+                'path' => $request->url(),
+                'query' => $request->query(),
+            ]);
+            $databaseUnavailable = true;
+        }
 
         return view('table', [
             'cars' => $cars,
+            'databaseUnavailable' => $databaseUnavailable,
         ]);
     }
 

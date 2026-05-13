@@ -6,7 +6,6 @@ use App\Enums\CarProviderEnum;
 use App\Exceptions\CarProcessIgnoreException;
 use App\Models\Car;
 use App\Services\CarProcessService;
-use App\Traits\CarProviderTrait;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -18,7 +17,6 @@ use Illuminate\Validation\Rule;
 
 abstract class CarProcessJob implements ShouldQueue
 {
-    use CarProviderTrait;
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public CarProviderEnum $provider;
@@ -30,7 +28,7 @@ abstract class CarProcessJob implements ShouldQueue
         public string $model,
         public string|array $data,
     ) {
-        $this->setProviderByClassName();
+        $this->provider = static::provider();
 
         $this->processService = $this->provider->getProcessService([
             'brand' => $this->brand,
@@ -38,6 +36,8 @@ abstract class CarProcessJob implements ShouldQueue
             'data' => $data,
         ]);
     }
+
+    abstract public static function provider(): CarProviderEnum;
 
     public function handle(): void
     {

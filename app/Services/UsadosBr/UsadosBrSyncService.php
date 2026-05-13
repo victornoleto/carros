@@ -2,11 +2,17 @@
 
 namespace App\Services\UsadosBr;
 
+use App\Enums\CarProviderEnum;
 use App\Services\CarSyncService;
 use Symfony\Component\DomCrawler\Crawler;
 
 class UsadosBrSyncService extends CarSyncService
 {
+    public static function provider(): CarProviderEnum
+    {
+        return CarProviderEnum::USADOSBR;
+    }
+
     public function getPageUnprocessedResults(string $pageResults): array
     {
         $crawler = new Crawler($pageResults);

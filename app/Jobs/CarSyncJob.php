@@ -4,7 +4,6 @@ namespace App\Jobs;
 
 use App\Enums\CarProviderEnum;
 use App\Models\Car;
-use App\Traits\CarProviderTrait;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -14,7 +13,6 @@ use Illuminate\Support\Facades\Log;
 
 abstract class CarSyncJob implements ShouldQueue
 {
-    use CarProviderTrait;
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $tries = 3;
@@ -31,8 +29,10 @@ abstract class CarSyncJob implements ShouldQueue
         public int $page = 1,
         public bool $recursive = false,
     ) {
-        $this->setProviderByClassName();
+        $this->provider = static::provider();
     }
+
+    abstract public static function provider(): CarProviderEnum;
 
     public function handle(): void
     {

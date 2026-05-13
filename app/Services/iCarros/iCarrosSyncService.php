@@ -2,11 +2,17 @@
 
 namespace App\Services\iCarros;
 
+use App\Enums\CarProviderEnum;
 use App\Services\CarSyncService;
 use Symfony\Component\DomCrawler\Crawler;
 
 class iCarrosSyncService extends CarSyncService
 {
+    public static function provider(): CarProviderEnum
+    {
+        return CarProviderEnum::ICARROS;
+    }
+
     public function getPageRequestUrl(string $brand, string $model, int $page = 1): string
     {
         $url = '/comprar';

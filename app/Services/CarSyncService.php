@@ -3,14 +3,11 @@
 namespace App\Services;
 
 use App\Enums\CarProviderEnum;
-use App\Traits\CarProviderTrait;
 use GuzzleHttp\Client;
 use GuzzleHttp\RequestOptions;
 
 abstract class CarSyncService
 {
-    use CarProviderTrait;
-
     public Client $httpClient;
 
     public CarProviderEnum $provider;
@@ -22,8 +19,10 @@ abstract class CarSyncService
             RequestOptions::TIMEOUT => config('car_scraping.timeout', 60),
         ]);
 
-        $this->setProviderByClassName();
+        $this->provider = static::provider();
     }
+
+    abstract public static function provider(): CarProviderEnum;
 
     abstract public function getPageRequestUrl(string $brand, string $model, int $page = 1): string;
 

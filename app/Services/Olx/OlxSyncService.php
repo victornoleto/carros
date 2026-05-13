@@ -2,11 +2,17 @@
 
 namespace App\Services\Olx;
 
+use App\Enums\CarProviderEnum;
 use App\Services\CarSyncService;
 use Symfony\Component\DomCrawler\Crawler;
 
 class OlxSyncService extends CarSyncService
 {
+    public static function provider(): CarProviderEnum
+    {
+        return CarProviderEnum::OLX;
+    }
+
     public function getPageRequestUrl(string $brand, string $model, int $page = 1): string
     {
         $brandsDict = [

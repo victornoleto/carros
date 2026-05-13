@@ -3,21 +3,20 @@
 namespace App\Services;
 
 use App\Enums\CarProviderEnum;
-use App\Traits\CarProviderTrait;
 use Illuminate\Support\Carbon;
 
 abstract class CarProcessService
 {
-    use CarProviderTrait;
-
     public CarProviderEnum $provider;
 
     public function __construct(
         public string $brand,
         public string $model
     ) {
-        $this->setProviderByClassName();
+        $this->provider = static::provider();
     }
+
+    abstract public static function provider(): CarProviderEnum;
 
     public function getData(): array
     {

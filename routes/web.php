@@ -7,11 +7,12 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\TestController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', [HomeController::class, 'dashboard']);
+Route::get('/', [HomeController::class, 'dashboard'])->name('dashboard');
 
 Route::get('/charts-data', [HomeController::class, 'chartsData']);
 
-Route::get('/table', [HomeController::class, 'table']);
+Route::get('/table', [HomeController::class, 'table'])->name('table');
+Route::get('/anuncios', [HomeController::class, 'table'])->name('listings');
 
 Route::get('/redirect/{car}', [HomeController::class, 'redirect'])
     ->name('provider.redirect');

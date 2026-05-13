@@ -2,11 +2,17 @@
 
 namespace App\Services\Olx;
 
+use App\Enums\CarProviderEnum;
 use App\Services\CarProcessService;
 use Illuminate\Support\Carbon;
 
 class OlxProcessService extends CarProcessService
 {
+    public static function provider(): CarProviderEnum
+    {
+        return CarProviderEnum::OLX;
+    }
+
     public function __construct(
         string $brand,
         string $model,

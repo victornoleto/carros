@@ -2,11 +2,17 @@
 
 namespace App\Services\Webmotors;
 
+use App\Enums\CarProviderEnum;
 use App\Services\CarProcessService;
 use Illuminate\Support\Carbon;
 
 class WebmotorsProcessService extends CarProcessService
 {
+    public static function provider(): CarProviderEnum
+    {
+        return CarProviderEnum::WEBMOTORS;
+    }
+
     public function __construct(
         public string $brand,
         public string $model,

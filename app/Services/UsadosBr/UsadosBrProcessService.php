@@ -2,6 +2,7 @@
 
 namespace App\Services\UsadosBr;
 
+use App\Enums\CarProviderEnum;
 use App\Services\CarProcessService;
 use Illuminate\Support\Carbon;
 use Symfony\Component\DomCrawler\Crawler;
@@ -9,6 +10,11 @@ use Symfony\Component\DomCrawler\Crawler;
 class UsadosBrProcessService extends CarProcessService
 {
     public Crawler $node;
+
+    public static function provider(): CarProviderEnum
+    {
+        return CarProviderEnum::USADOSBR;
+    }
 
     public function __construct(
         string $brand,

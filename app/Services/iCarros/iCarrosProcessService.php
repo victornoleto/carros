@@ -2,6 +2,7 @@
 
 namespace App\Services\iCarros;
 
+use App\Enums\CarProviderEnum;
 use App\Exceptions\CarProcessIgnoreException;
 use App\Services\CarProcessService;
 use Illuminate\Support\Carbon;
@@ -10,6 +11,11 @@ use Symfony\Component\DomCrawler\Crawler;
 class iCarrosProcessService extends CarProcessService
 {
     public Crawler $node;
+
+    public static function provider(): CarProviderEnum
+    {
+        return CarProviderEnum::ICARROS;
+    }
 
     public function __construct(
         string $brand,
