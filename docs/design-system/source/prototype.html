@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=1440" />
+  <title>Curva · protótipo interativo</title>
+  <link rel="stylesheet" href="brand.css" />
+  <style>
+    html, body { margin: 0; padding: 0; background: var(--paper); min-height: 100vh; }
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    .stage-frame {
+      margin: 0 auto;
+      background: var(--paper);
+      transition: width .3s cubic-bezier(.2,.7,.3,1), box-shadow .3s;
+      box-sizing: content-box;
+    }
+    .stage-frame[data-frame-size="mobile"] {
+      margin: 32px auto;
+      border-radius: 32px;
+      overflow: hidden;
+      border: 8px solid #1a1714;
+    }
+    .stage-frame[data-frame-size="tablet"] {
+      margin: 32px auto;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 8px solid #1a1714;
+    }
+    /* density tweak */
+    .curva[data-density="compact"] .tbl td,
+    .curva[data-density="compact"] .tbl th { padding: 8px 12px; }
+    /* dark tweak */
+    .curva[data-mode="dark"] {
+      --paper: #14110d; --paper-2: #1e1a14; --surface: #1c1812; --surface-2: #221e17;
+      --ink: #f3f0e8; --ink-2: #e6e1d3; --mute: #a89c84; --mute-2: #7a6f5a;
+      --line: #2b2620; --line-2: #3a342a;
+    }
+    .curva[data-mode="dark"] .device-mobile { background: #14110d; }
+  </style>
+</head>
+<body>
+  <div id="stage"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script src="src/data.js"></script>
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+  <script type="text/babel" src="src/components.jsx"></script>
+  <script type="text/babel" src="src/screens/Dashboard.jsx"></script>
+  <script type="text/babel" src="src/screens/Tabela.jsx"></script>
+  <script type="text/babel" src="src/screens/Auth.jsx"></script>
+  <script type="text/babel" src="src/screens/Alertas.jsx"></script>
+  <script type="text/babel" src="src/screens/Mobile.jsx"></script>
+
+  <script type="text/babel" data-presets="react">
+    const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+      "screen": "dashboard",
+      "frame": "desktop",
+      "accent": "#1a6c4d",
+      "mode": "light",
+      "density": "comfortable",
+      "loggedIn": false
+    }/*EDITMODE-END*/;
+
+    const SCREEN_OPTIONS = [
+      { value: 'dashboard',   label: '01 · Dashboard · mapa' },
+      { value: 'tabela',      label: '02 · Anúncios' },
+      { value: 'login',       label: '03 · Login' },
+      { value: 'cadastro',    label: '04 · Cadastro' },
+      { value: 'alertas',     label: '05 · Meus alertas' },
+      { value: 'criarAlerta', label: '06 · Criar alerta' },
+    ];
+
+    const ACCENT_PRESETS = {
+      '#1a6c4d': { good: '#1a6c4d', soft: '#d9ebe1', ink: '#0e3e2c', deck: '#4ddb98' }, // green
+      '#2a5fb5': { good: '#2a5fb5', soft: '#d8e3f5', ink: '#142d59', deck: '#74a9ff' }, // indigo
+      '#b85a23': { good: '#b85a23', soft: '#f4dccb', ink: '#5a2b10', deck: '#ff9b5a' }, // ember
+      '#5b3aa3': { good: '#5b3aa3', soft: '#e2dbf2', ink: '#2c1c52', deck: '#a78aff' }, // violet
+    };
+
+    const REQUIRES_AUTH = ['alertas', 'criarAlerta'];
+
+    function App() {
+      const [t, setTweak] = window.useTweaks(TWEAK_DEFAULTS);
+      const [history, setHistory] = React.useState([t.screen]);
+
+      const isMobile = t.frame === 'mobile';
+      const baseWidth = t.frame === 'mobile' ? 390 : t.frame === 'tablet' ? 820 : 1440;
+
+      const nav = (screen) => {
+        if (REQUIRES_AUTH.includes(screen) && !t.loggedIn) {
+          setTweak({ screen: 'login' });
+          setHistory(h => [...h, 'login']);
+          return;
+        }
+        setTweak({ screen });
+        setHistory(h => [...h, screen]);
+      };
+
+      const onSubmit = () => {
+        if (t.screen === 'login' || t.screen === 'cadastro') {
+          setTweak({ loggedIn: true, screen: 'alertas' });
+          setHistory(h => [...h, 'alertas']);
+        } else if (t.screen === 'criarAlerta') {
+          setTweak({ screen: 'alertas' });
+          setHistory(h => [...h, 'alertas']);
+        }
+      };
+
+      // Apply accent CSS vars
+      const accent = ACCENT_PRESETS[t.accent] || ACCENT_PRESETS['#1a6c4d'];
+      const accentStyle = {
+        '--good': accent.good,
+        '--good-soft': accent.soft,
+        '--good-ink': accent.ink,
+      };
+
+      let Body = null;
+      const screen = t.screen;
+      if (isMobile) {
+        const map = {
+          dashboard: window.CurvaMobileDashboard,
+          tabela: window.CurvaMobileTabela,
+          login: window.CurvaMobileLogin,
+          cadastro: window.CurvaMobileCadastro,
+          alertas: window.CurvaMobileAlertas,
+          criarAlerta: window.CurvaMobileCriarAlerta,
+        };
+        const C = map[screen] || map.dashboard;
+        Body = <C onNav={nav} onSubmit={onSubmit} />;
+      } else {
+        const map = {
+          dashboard: window.CurvaDashboard,
+          tabela: window.CurvaTabela,
+          login: window.CurvaLogin,
+          cadastro: window.CurvaCadastro,
+          alertas: window.CurvaMeusAlertas,
+          criarAlerta: window.CurvaCriarAlerta,
+        };
+        const C = map[screen] || map.dashboard;
+        Body = <C onNav={nav} onSubmit={onSubmit} loggedIn={t.loggedIn} width={baseWidth} />;
+      }
+
+      return (
+        <>
+          <div
+            className="stage-frame"
+            data-frame-size={t.frame}
+            style={{
+              width: baseWidth,
+              maxWidth: '100%',
+              boxShadow: t.frame !== 'desktop' ? '0 20px 60px -20px rgba(0,0,0,.25)' : 'none',
+              minHeight: isMobile ? 820 : '100vh',
+            }}
+          >
+            <div
+              className="curva"
+              data-density={t.density}
+              data-mode={t.mode}
+              style={{ minHeight: '100vh', ...accentStyle }}
+            >
+              {Body}
+            </div>
+          </div>
+
+          <window.TweaksPanel title="Tweaks">
+            <window.TweakSection label="Navegação">
+              <window.TweakSelect label="Tela" value={t.screen} options={SCREEN_OPTIONS}
+                onChange={(v) => { setTweak({ screen: v }); setHistory(h => [...h, v]); }} />
+              <window.TweakToggle label="Logado" value={t.loggedIn}
+                onChange={(v) => setTweak({ loggedIn: v })} />
+            </window.TweakSection>
+
+            <window.TweakSection label="Viewport">
+              <window.TweakRadio label="Tamanho" value={t.frame}
+                options={[
+                  { value: 'desktop', label: 'Desktop' },
+                  { value: 'tablet', label: 'Tablet' },
+                  { value: 'mobile', label: 'Mobile' },
+                ]}
+                onChange={(v) => setTweak({ frame: v })} />
+            </window.TweakSection>
+
+            <window.TweakSection label="Visual">
+              <window.TweakColor label="Cor da curva (good)" value={t.accent}
+                options={['#1a6c4d', '#2a5fb5', '#b85a23', '#5b3aa3']}
+                onChange={(v) => setTweak({ accent: v })} />
+              <window.TweakRadio label="Tema" value={t.mode}
+                options={[
+                  { value: 'light', label: 'Light' },
+                  { value: 'dark', label: 'Dark' },
+                ]}
+                onChange={(v) => setTweak({ mode: v })} />
+              <window.TweakRadio label="Densidade" value={t.density}
+                options={[
+                  { value: 'comfortable', label: 'Confort.' },
+                  { value: 'compact', label: 'Compact' },
+                ]}
+                onChange={(v) => setTweak({ density: v })} />
+            </window.TweakSection>
+          </window.TweaksPanel>
+        </>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('stage')).render(<App />);
+  </script>
+</body>
+</html>

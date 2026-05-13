@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=1440" />
+  <title>Curva · design system + screens</title>
+  <link rel="stylesheet" href="brand.css" />
+  <style>
+    html, body { margin: 0; padding: 0; background: #f0eee9; }
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    .intro-bar {
+      display: flex; align-items: center; gap: 16px;
+      padding: 14px 22px; background: #14110d; color: #f3f0e8;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+    .intro-bar a {
+      color: #4ddb98; text-decoration: none; font-weight: 600; font-size: 13px;
+      padding: 6px 10px; border: 1px solid rgba(77,219,152,.3); border-radius: 6px;
+      transition: background .12s;
+    }
+    .intro-bar a:hover { background: rgba(77,219,152,.1); }
+    .intro-bar .pill {
+      font-family: 'JetBrains Mono', monospace; font-size: 11px;
+      padding: 4px 8px; border-radius: 999px;
+      background: rgba(243,240,232,.08); color: rgba(243,240,232,.7);
+      text-transform: uppercase; letter-spacing: .08em;
+    }
+  </style>
+</head>
+<body>
+  <div class="intro-bar">
+    <span style="font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 16px; letter-spacing: -.02em;">curva</span>
+    <span class="pill">design system v0.4</span>
+    <span style="flex: 1;"></span>
+    <span style="font-size: 13px; color: rgba(243,240,232,.6);">arraste para navegar · clique para focar · 6 telas em desktop + mobile</span>
+    <a href="prototype.html">▶ Abrir protótipo interativo →</a>
+  </div>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script src="src/data.js"></script>
+  <script type="text/babel" src="design-canvas.jsx"></script>
+  <script type="text/babel" src="src/components.jsx"></script>
+  <script type="text/babel" src="src/screens/Brand.jsx"></script>
+  <script type="text/babel" src="src/screens/Dashboard.jsx"></script>
+  <script type="text/babel" src="src/screens/Tabela.jsx"></script>
+  <script type="text/babel" src="src/screens/Auth.jsx"></script>
+  <script type="text/babel" src="src/screens/Alertas.jsx"></script>
+  <script type="text/babel" src="src/screens/Mobile.jsx"></script>
+
+  <script type="text/babel" data-presets="react">
+    function MobileFrame({ children, label }) {
+      return (
+        <div className="device-mobile" data-screen-label={label}>
+          <div className="device-mobile__notch" />
+          <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+            {children}
+          </div>
+        </div>
+      );
+    }
+
+    function App() {
+      return (
+        <DesignCanvas>
+          <DCSection id="brand" title="01 · Identidade" subtitle="Curva — anúncios abaixo da curva">
+            <DCArtboard id="brand-overview" label="Sistema visual" width={1440} height={1100}>
+              <window.CurvaBrand width={1440} />
+            </DCArtboard>
+          </DCSection>
+
+          <DCSection id="desktop" title="02 · Telas — Desktop" subtitle="1440 × 900 · todas as 6 telas">
+            <DCArtboard id="d-dashboard" label="Dashboard público · scatter map" width={1440} height={1050}>
+              <window.CurvaDashboard width={1440} />
+            </DCArtboard>
+            <DCArtboard id="d-tabela" label="Tabela de anúncios" width={1440} height={1050}>
+              <window.CurvaTabela width={1440} />
+            </DCArtboard>
+            <DCArtboard id="d-login" label="Login" width={1440} height={900}>
+              <window.CurvaLogin width={1440} />
+            </DCArtboard>
+            <DCArtboard id="d-cadastro" label="Cadastro" width={1440} height={900}>
+              <window.CurvaCadastro width={1440} />
+            </DCArtboard>
+            <DCArtboard id="d-alertas" label="Meus alertas" width={1440} height={950}>
+              <window.CurvaMeusAlertas width={1440} />
+            </DCArtboard>
+            <DCArtboard id="d-criar" label="Criar alerta" width={1440} height={1050}>
+              <window.CurvaCriarAlerta width={1440} />
+            </DCArtboard>
+          </DCSection>
+
+          <DCSection id="mobile" title="03 · Telas — Mobile" subtitle="iPhone · 390 × 780 · mesmas 6 telas, repensadas">
+            <DCArtboard id="m-dashboard" label="Mapa · mobile" width={410} height={800}>
+              <MobileFrame label="Mapa"><window.CurvaMobileDashboard /></MobileFrame>
+            </DCArtboard>
+            <DCArtboard id="m-tabela" label="Anúncios · mobile" width={410} height={800}>
+              <MobileFrame label="Anúncios"><window.CurvaMobileTabela /></MobileFrame>
+            </DCArtboard>
+            <DCArtboard id="m-login" label="Login · mobile" width={410} height={800}>
+              <MobileFrame label="Login"><window.CurvaMobileLogin /></MobileFrame>
+            </DCArtboard>
+            <DCArtboard id="m-cadastro" label="Cadastro · mobile" width={410} height={800}>
+              <MobileFrame label="Cadastro"><window.CurvaMobileCadastro /></MobileFrame>
+            </DCArtboard>
+            <DCArtboard id="m-alertas" label="Alertas · mobile" width={410} height={800}>
+              <MobileFrame label="Alertas"><window.CurvaMobileAlertas /></MobileFrame>
+            </DCArtboard>
+            <DCArtboard id="m-criar" label="Novo alerta · mobile" width={410} height={800}>
+              <MobileFrame label="Novo alerta"><window.CurvaMobileCriarAlerta /></MobileFrame>
+            </DCArtboard>
+          </DCSection>
+
+          <DCSection id="ux" title="04 · UX notes" subtitle="Como Curva acelera a comparação de anúncios">
+            <DCArtboard id="notes" label="Princípios de comparação" width={1240} height={580}>
+              <div className="curva" style={{ width: 1240, height: 580, padding: 48, background: 'var(--paper)' }}>
+                <div className="t-up" style={{ marginBottom: 8 }}>Observações de UX</div>
+                <h2 className="display" style={{ fontSize: 38, fontWeight: 600, letterSpacing: '-0.03em', margin: 0 }}>
+                  Compare mais rápido <span style={{ color: 'var(--mute-2)' }}>· sem abrir 9 abas</span>
+                </h2>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20, marginTop: 28 }}>
+                  {[
+                    ['Curva-score em todo lugar', 'O mesmo % aparece no scatter, na tabela e nos cards mobile. O usuário aprende a ler "−14% curva" como linguagem.'],
+                    ['Sparkcurve inline', 'Ao invés de só um número, o glyph mostra onde aquele anúncio caiu no mapa. Comparação visual instantânea, sem mudar de tela.'],
+                    ['Filtros como linguagem', 'Cada chip ativo vira frase ("≥10% abaixo da curva"). Salvar como alerta é literalmente "salvar esta frase".'],
+                    ['Dados densos, sem peso', 'Hairlines de 1px, paper warm, sem sombras. Listas longas funcionam porque a tipografia carrega a hierarquia.'],
+                    ['Mono para alinhar', 'Preços, km e anos em mono com tabular nums alinham coluna a coluna — o olho lê 14 linhas como uma só.'],
+                    ['Verde é raro', 'Verde só marca anúncios abaixo da curva. Em uma tela com 14 anúncios, talvez 2-3 brilhem. O destaque sobrevive.'],
+                  ].map(([t, s], i) => (
+                    <div key={t} style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '20px 22px', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 10 }}>
+                      <span className="mono" style={{ fontSize: 11, color: 'var(--mute-2)' }}>{String(i + 1).padStart(2, '0')}</span>
+                      <span style={{ fontSize: 16, fontWeight: 600, letterSpacing: '-0.01em' }}>{t}</span>
+                      <span style={{ fontSize: 13, color: 'var(--mute)', lineHeight: 1.55 }}>{s}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </DCArtboard>
+          </DCSection>
+        </DesignCanvas>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
